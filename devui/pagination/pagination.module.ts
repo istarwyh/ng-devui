@@ -1,19 +1,21 @@
-import { NgModule } from '@angular/core';
-import { SelectModule } from 'ng-devui/select';
-import { PaginationComponent } from './pagination.component';
 import { CommonModule } from '@angular/common';
-import { DevUIConfig } from 'ng-devui/devui.config';
+import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { SelectModule } from 'ng-devui/select';
+import { TextInputModule } from 'ng-devui/text-input';
+import { SafePipeModule } from 'ng-devui/utils';
+import { PaginationComponent } from './pagination.component';
 
 @NgModule({
   imports: [
     CommonModule,
     SelectModule,
-    FormsModule
+    FormsModule,
+    SafePipeModule,
+    TextInputModule
   ],
   declarations: [PaginationComponent],
-  exports: [PaginationComponent],
-  providers: [DevUIConfig],
+  exports: [PaginationComponent]
 })
 export class PaginationModule {
 }

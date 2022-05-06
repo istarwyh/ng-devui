@@ -1,26 +1,31 @@
-import { NgModule } from '@angular/core';
+import { ClipboardModule } from '@angular/cdk/clipboard';
 import { CommonModule } from '@angular/common';
-
-import { DatePipe } from './date-pipe';
+import { NgModule } from '@angular/core';
 import { AutoFocusDirective } from './auto-focus.directive';
-import { HelperUtils, SimulateATagDirective } from './helper-utils';
+import { ClipboardDirective } from './clipboard.directive';
+import { DatePipe } from './date-pipe';
+import { SimulateATagDirective } from './helper-utils';
 import { IframeEventPropagateDirective } from './iframe-event-propagate.directive';
 
 @NgModule({
-  imports: [CommonModule],
+  imports: [
+    CommonModule,
+    ClipboardModule
+  ],
   exports: [
     AutoFocusDirective,
     DatePipe,
     SimulateATagDirective,
-    IframeEventPropagateDirective
+    IframeEventPropagateDirective,
+    ClipboardDirective
   ],
   declarations: [
     AutoFocusDirective,
     DatePipe,
     SimulateATagDirective,
-    IframeEventPropagateDirective
-  ]
-  ,
+    IframeEventPropagateDirective,
+    ClipboardDirective
+  ],
   providers: [],
 })
 export class DCommonModule {

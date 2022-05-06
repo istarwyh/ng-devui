@@ -1,4 +1,4 @@
-<p align="center"><a href="https://devui.design/home" target="_blank" rel="noopener noreferrer"><img alt="DevUI Logo" src="logo.svg" width="180" style="max-width:100%;">
+<p align="center"><a href="https://devui.design/home" target="_blank" rel="noopener noreferrer"><img alt="DevUI Logo" src="logo.svg?sanitize=true" width="180" style="max-width:100%;">
 </p>
 <p align="center">
   <a href="https://github.com/DevCloudFE/ng-devui"><img src="https://img.shields.io/github/stars/DevCloudFE/ng-devui.svg?label=github%20stars" alt="Github Star"></a>
@@ -7,9 +7,9 @@
 </br>
   <a href="README.md"><img src="https://img.shields.io/badge/document-English-blue" alt="Document"></a>
   <a href="README_zh_CN.md"><img src="https://img.shields.io/badge/%E6%96%87%E6%A1%A3-%E4%B8%AD%E6%96%87-blue" alt="Document"></a>
+  <a href="https://www.npmjs.com/package/ng-devui"><img src="https://img.shields.io/npm/v/ng-devui" alt="Npm"></a>
+  <a href="https://gitter.im/devui-design/devui-design"><img src="https://img.shields.io/gitter/room/devui-design/devui-design" alt="Chat"></a>
 </p>
-
-
 
 <h1 align="center">DevUI for Angular</h1>
 DevUI Design设计系统包含了DevUI规则、设计语言和最佳实践的资源组合。DevUI Design可以让开发人员更加专注于应用逻辑的思考，而设计人员专注于用户体验、交互和流程
@@ -23,7 +23,7 @@ DevUI Design设计系统包含了DevUI规则、设计语言和最佳实践的资
 
 ## Angular版本
 
-目前支持的angular版本<font color=red>`^7.0.0`</font>
+当前支持的angular版本<font color=red>`^13.0.0`</font>
 
 ## 快速开始
 
@@ -32,7 +32,7 @@ DevUI Design设计系统包含了DevUI规则、设计语言和最佳实践的资
 推荐使用`@angular/cli`创建你的项目
 
 ```bash
-$ ng new New-Project
+ng new New-Project
 ```
 
 2. 安装:
@@ -40,7 +40,7 @@ $ ng new New-Project
 ```bash
 $ cd New-Project
 $ npm i ng-devui
-# 可选，字体图标库 
+# 可选，字体图标库
 # $ npm i @devui-design/icons
 ```
 
@@ -48,6 +48,7 @@ $ npm i ng-devui
 
 ```typescript
 import { BrowserModule } from '@angular/platform-browser';
+// DevUI部分组件依赖angular动画，需要引入animations模块
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgModule } from '@angular/core';
 import { DevUIModule } from 'ng-devui';
@@ -81,7 +82,7 @@ export class AppModule { }
 5. 启动开发测试
 
 ```bash
-$ ng serve --open
+ng serve --open
 ```
 
 ## 贡献
@@ -98,7 +99,7 @@ $ ng serve --open
 
 | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/edge/edge_48x48.png" alt="IE / Edge" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)</br>IE / Edge | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/firefox/firefox_48x48.png" alt="Firefox" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)</br>Firefox | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/chrome/chrome_48x48.png" alt="Chrome" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)</br>Chrome | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/safari/safari_48x48.png" alt="Safari" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)</br>Safari | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/opera/opera_48x48.png" alt="Opera" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)</br>Opera |
 | --------- | --------- | --------- | --------- | --------- |
-| IE11, Edge| last 2 versions| last 2 versions| last 2 versions| last 2 versions
+| Edge| last 2 versions| last 2 versions| last 2 versions| last 2 versions
 
 ## 谁在使用
 

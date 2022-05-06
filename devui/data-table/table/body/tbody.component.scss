@@ -1,0 +1,29 @@
+@import '../../../style/theme/color';
+@import '../../../style/core/_font';
+
+.detail-content {
+  color: $devui-text;
+  font-size: $devui-font-size;
+  font-weight: normal;
+  background-color: $devui-area;
+}
+
+.child-table {
+  &:hover {
+    background: transparent !important;
+  }
+
+  .devui-table {
+    background: transparent;
+    margin-bottom: 0;
+  }
+
+  & > td {
+    padding: 0 0 0 0;
+    border: 0;
+  }
+}
+
+.expand-row:hover {
+  background: inherit !important;
+}

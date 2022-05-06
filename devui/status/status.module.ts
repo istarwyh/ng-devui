@@ -1,18 +1,13 @@
 import { NgModule } from '@angular/core';
 
-import { StatusComponent } from './status.component';
 import { CommonModule } from '@angular/common';
-
+import { StatusComponent } from './status.component';
 
 @NgModule({
-  imports: [
-    CommonModule
-  ],
+  imports: [CommonModule],
   exports: [StatusComponent],
   declarations: [StatusComponent],
-  providers: [],
+  providers: []
 })
 
-export class StatusModule {
-
-}
+export class StatusModule { }

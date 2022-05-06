@@ -6,14 +6,14 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./ngmodel.component.css']
 })
 export class NgmodelComponent implements OnInit {
-  searchText = 'test';
+  searchText = 'devui';
   constructor() { }
 
   ngOnInit() {
   }
 
   onSearch(term) {
-      console.log(term);
+    console.log(term);
   }
 
 }

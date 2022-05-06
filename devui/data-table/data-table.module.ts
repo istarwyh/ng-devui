@@ -1,46 +1,47 @@
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { ScrollingModule } from '@angular/cdk/scrolling';
-
-import { DataTableComponent } from './data-table.component';
-import { DataTableColumnTmplComponent } from './tmpl/data-table-column-tmpl.component';
-import { DataTableCellViewTmplComponent } from './tmpl/data-table-cell-view-tmpl.component';
-import { DataTableCellEditTmplComponent } from './tmpl/data-table-cell-edit-tmpl.component';
-import { DataTableCellComponent } from './data-table-cell.component';
-import { DataTableBodyComponent } from './data-table-body.component';
-import { DataTableHeadComponent } from './data-table-head.component';
-import { DataTableRowComponent } from './data-table-row.component';
-import { DataTableHeadTmplComponent } from './tmpl/data-table-head-tmpl.component';
-import { DataTableCellFilterTmplComponent } from './tmpl/data-table-cell-filter-tmpl.component';
-import { DataTableFootTmplComponent } from './tmpl/data-table-foot-tmpl.component';
-import { DataTableFootComponent } from './data-table-foot.component';
-import { PaginationModule } from 'ng-devui/pagination';
-import { DataTableTmplsComponent } from './tmpl/data-table-tmpls.component';
-import { DataTableCellTmplComponent } from './tmpl/data-table-cell-tmpl.component';
-import { DataTablePagerComponent } from './data-table-pager.component';
-import { DataTablePagerTmplComponent } from './tmpl/data-table-pager-tmpl.component';
-import { DataTableHeadCellTmplComponent } from './tmpl/data-table-head-cell-tmpl.component';
+import { CommonModule } from '@angular/common';
+import { NgModule } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { ButtonModule } from 'ng-devui/button';
+import { CheckBoxModule } from 'ng-devui/checkbox';
 import { DCommonModule } from 'ng-devui/common';
 import { DatepickerModule } from 'ng-devui/datepicker';
-import { CheckBoxModule } from 'ng-devui/checkbox';
-import { ResizeableDirective } from './resizeable.directive';
-import { DevUIConfig } from 'ng-devui/devui.config';
-import { ButtonModule } from 'ng-devui/button';
-import { SelectModule } from 'ng-devui/select';
-import { InputNumberModule } from 'ng-devui/input-number';
-import { SearchModule } from 'ng-devui/search';
+import { DragDropModule } from 'ng-devui/dragdrop';
 import { DropDownModule } from 'ng-devui/dropdown';
-import { TreeSelectModule } from 'ng-devui/tree-select';
-import { SafePipeModule } from 'ng-devui/utils';
+import { InputNumberComponent, InputNumberModule } from 'ng-devui/input-number';
+import { PaginationModule } from 'ng-devui/pagination';
+import { SelectComponent, SelectModule } from 'ng-devui/select';
+import { TooltipModule } from 'ng-devui/tooltip';
+import { TreeSelectComponent, TreeSelectModule } from 'ng-devui/tree-select';
+import { LazyLoadModule, SafePipeModule } from 'ng-devui/utils';
+import { WindowRefModule } from 'ng-devui/window-ref';
+import { DataTableBodyComponent } from './data-table-body.component';
+import { DataTableCellComponent } from './data-table-cell.component';
+import { DataTableHeadComponent } from './data-table-head.component';
+import { DataTableRowComponent } from './data-table-row.component';
+import { DataTableComponent } from './data-table.component';
 import { DisPlayCellValuePipe } from './display-cell-value.pipe';
-import { DynamicCellTemplatePipe } from './dynamic-cell-template.pipe';
-import { I18nService } from 'ng-devui/utils';
+import { EditorDirective } from './editor-host.directive';
+import { TableTbodyComponent } from './table/body/tbody.component';
+import { TableTdComponent } from './table/body/td/td.component';
+import { TableTdService } from './table/body/td/td.service';
+import { FilterComponent } from './table/head/th/filter/filter.component';
+import { SortComponent } from './table/head/th/sort/sort.component';
+import { TableThComponent } from './table/head/th/th.component';
+import { TableTheadComponent } from './table/head/thead.component';
+import { TableTrComponent } from './table/row/tr.component';
+import { DataTableCellEditTmplComponent } from './tmpl/data-table-cell-edit-tmpl.component';
+import { DataTableCellTmplComponent } from './tmpl/data-table-cell-tmpl.component';
+import { DataTableCellViewTmplComponent } from './tmpl/data-table-cell-view-tmpl.component';
+import { DataTableColumnTmplComponent } from './tmpl/data-table-column-tmpl.component';
+import { DataTableHeadCellTmplComponent } from './tmpl/data-table-head-cell-tmpl.component';
+
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
+    WindowRefModule,
     ScrollingModule,
     PaginationModule,
     DCommonModule,
@@ -49,10 +50,12 @@ import { I18nService } from 'ng-devui/utils';
     CheckBoxModule,
     ButtonModule,
     InputNumberModule,
-    SearchModule,
     DropDownModule,
     TreeSelectModule,
-    SafePipeModule
+    SafePipeModule,
+    TooltipModule,
+    DragDropModule,
+    LazyLoadModule
   ],
   exports: [
     DataTableComponent,
@@ -62,17 +65,16 @@ import { I18nService } from 'ng-devui/utils';
     DataTableBodyComponent,
     DataTableHeadComponent,
     DataTableCellComponent,
-    DataTableHeadTmplComponent,
-    DataTableCellFilterTmplComponent,
-    DataTableFootTmplComponent,
-    DataTableFootComponent,
-    DataTableTmplsComponent,
-    DataTableCellTmplComponent,
-    DataTablePagerComponent,
-    DataTablePagerTmplComponent,
     DataTableRowComponent,
-    ResizeableDirective,
-    DataTableHeadCellTmplComponent
+    DataTableCellTmplComponent,
+    DataTableHeadCellTmplComponent,
+    TableThComponent,
+    FilterComponent,
+    SortComponent,
+    TableTheadComponent,
+    TableTrComponent,
+    TableTbodyComponent,
+    TableTdComponent
   ],
   declarations: [
     DataTableComponent,
@@ -82,21 +84,21 @@ import { I18nService } from 'ng-devui/utils';
     DataTableBodyComponent,
     DataTableHeadComponent,
     DataTableCellComponent,
-    DataTableHeadTmplComponent,
-    DataTableCellFilterTmplComponent,
-    DataTableFootTmplComponent,
-    DataTableFootComponent,
-    DataTableTmplsComponent,
-    DataTableCellTmplComponent,
-    DataTablePagerComponent,
-    DataTablePagerTmplComponent,
     DataTableRowComponent,
-    ResizeableDirective,
+    DataTableCellTmplComponent,
     DataTableHeadCellTmplComponent,
-    DynamicCellTemplatePipe,
-    DisPlayCellValuePipe
+    DisPlayCellValuePipe,
+    EditorDirective,
+    TableThComponent,
+    FilterComponent,
+    SortComponent,
+    TableTheadComponent,
+    TableTrComponent,
+    TableTbodyComponent,
+    TableTdComponent
   ],
-  providers: [DevUIConfig, I18nService],
+
+  providers: [ TableTdService ],
 })
 export class DataTableModule {
 }

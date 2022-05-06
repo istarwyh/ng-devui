@@ -1,6 +1,11 @@
-@import '../../style/theme/color';
+@import '~ng-devui/styles-var/devui-var.scss';
 
+:host ::ng-deep {
+  form {
+    max-width: 450px;
+  }
 
-
-
-
+  form pre {
+    margin-left: 4px;
+  }
+}

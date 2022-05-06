@@ -1,19 +1,58 @@
-<div #selectBox class="devui-tags-host" tabindex="-1" (click)="host_click()">
-    <div class="devui-tags">
-        <ul class="devui-tag-list">
-            <li class="devui-tag-item" *ngFor="let tag of tags;let index=index;">
-                <span>{{tag[displayProperty]}}</span>
-                <a class="remove-button" (click)="removeTag(index)">×</a>
-            </li>
-        </ul>
-        <input #tagInput class="input devui-input" [(ngModel)]="newTag" (keydown)="input_keydown($event)" (focus)="input_focus($event)"
-            (blur)="input_blur($event)" (trim)="false" [placeholder]="placeholder"
-            [spellcheck]="spellcheck" [ngClass]="{'invalid-tag': !newTagValid}" type="text">
-    </div>
-    <div class="devui-tags-autocomplete" *ngIf="showSuggestionList&&availableOptions?.length">
-        <ul class="devui-suggestion-list">
-            <li class="devui-suggestion-item" *ngFor="let item of availableOptions;let index=index;"
-                [ngClass]="{'selected': index === selectIndex}" (mousedown)="addSuggestionByIndex(index, item)">{{item[displayProperty]}}</li>
-        </ul>
-    </div>
+<div #tagsInputWrapper class="devui-tags-host {{ multiline ? '' : 'init-inline' }}" tabindex="-1" (click)="host_click()">
+  <d-toggle-menu-container
+    [isOpen]="isOpen"
+    [appendToBody]="appendToBody"
+    [selectWrapper]="tagsInputWrapperItem"
+    [disabled]="disabled || selectedItems?.length >= maxTags"
+    [toggleOnFocus]="true"
+    [showAnimation]="showAnimation"
+    [closeScope]="'blank'"
+    (passEvent)="passEvent($event)"
+    (toggleChange)="toggleChangeFn($event)"
+  >
+    <d-toggle-menu-label
+      [multiItems]="selectedItems"
+      [mode]="'multiple-line'"
+      [valueParser]="valueParser"
+      [disabled]="disabled"
+      [maxHeight]="maxHeight"
+      (removeChange)="removeTag($event)"
+    ></d-toggle-menu-label>
+    <d-toggle-menu-search
+      *ngIf="!disabled"
+      [inputValue]="newTag"
+      [searchPlaceholder]="getPlaceHolder"
+      [searchFn]="searchFn"
+      [spellcheck]="spellcheck"
+      [isShowSearchIcon]="false"
+      [disabled]="disabled || selectedItems?.length >= maxTags"
+      [inputWidth]="multiline ? '' : 'auto'"
+      [delay]="0"
+      (searchInputValueChange)="searchInputValueChange($event)"
+    ></d-toggle-menu-search>
+    <d-toggle-menu-list
+      [eventHandle]="inputEvent"
+      [options]="availableOptions"
+      [value]="selectedItems"
+      [virtualScroll]="virtualScroll"
+      [hasSelectIndex]="true"
+      [isFiltering]="newTag?.length > 0"
+      [listItemTemplate]="listItem"
+      [closeScope]="'blank'"
+      (toggleChange)="toggleChangeFn($event)"
+      (valueChange)="setValue($event)"
+    >
+      <ng-template #listItem let-item="item" let-index="index" let-selectIndex="selectIndex" let-choose="choose">
+        <d-toggle-menu-list-item
+          [item]="item"
+          [index]="index"
+          [selectIndex]="selectIndex"
+          [highlightToggle]="false"
+          [customTemplate]="itemTemplate"
+          [filterKey]="displayProperty"
+          (chooseItem)="choose($event)"
+        ></d-toggle-menu-list-item>
+      </ng-template>
+    </d-toggle-menu-list>
+  </d-toggle-menu-container>
 </div>

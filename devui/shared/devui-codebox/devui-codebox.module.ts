@@ -1,16 +1,18 @@
-import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DevuiCodeboxComponent } from './devui-codebox.component';
+import { NgModule } from '@angular/core';
+import { TabsModule } from 'ng-devui/tabs';
+import { TooltipModule } from 'ng-devui/tooltip';
+import { TranslateModule } from '@ngx-translate/core';
 import { DevUIHighlightModule } from '../devui-highlight/devui-highlight.module';
-import { TabsModule } from '../../tabs';
-import { TooltipModule } from '../../tooltip';
+import { DevuiCodeboxComponent } from './devui-codebox.component';
 
 @NgModule({
   imports: [
     CommonModule,
     DevUIHighlightModule,
     TooltipModule,
-    TabsModule
+    TabsModule,
+    TranslateModule
   ],
   declarations: [DevuiCodeboxComponent],
   exports: [DevuiCodeboxComponent]

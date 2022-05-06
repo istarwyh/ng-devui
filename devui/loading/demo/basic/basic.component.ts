@@ -1,12 +1,9 @@
 import { Component, OnInit } from '@angular/core';
+import { LoadingType } from 'ng-devui/loading';
 import { pullAt, random } from 'lodash-es';
-import {LoadingType} from 'ng-devui/loading';
 import { from } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
-/**
- *  Mock HTTP Request.
- */
 const mockFetchNames = (url: string) => new Promise((resolve) => {
   const mockNames = [
     'Arnold', 'Ashley', 'Atkins', 'Burton', 'Butler', 'Byers',
@@ -39,7 +36,7 @@ const mockFetchNames = (url: string) => new Promise((resolve) => {
 @Component({
   selector: 'd-basic',
   templateUrl: './basic.component.html',
-  styleUrls: ['./basic.component.css']
+  styleUrls: ['./basic.component.scss']
 })
 export class BasicComponent implements OnInit {
   loading: LoadingType;
@@ -47,7 +44,7 @@ export class BasicComponent implements OnInit {
   view = {
     top: '50px',
     left: '50%'
-   };
+  };
   constructor() {
 
   }

@@ -1,31 +1,98 @@
-import {
-  Component,
-  HostBinding
-} from '@angular/core';
-import { DevuiSourceData } from '../../shared/devui-codebox';
-
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { DevuiSourceData } from 'ng-devui/shared/devui-codebox';
+import { TranslateService, TranslationChangeEvent } from '@ngx-translate/core';
+import { Subscription } from 'rxjs';
 @Component({
-    selector: 'd-demo-tabs',
-    templateUrl: './tabs-demo.component.html'
+  selector: 'd-demo-tabs',
+  templateUrl: './tabs-demo.component.html',
 })
-export class TabsDemoComponent {
+export class TabsDemoComponent implements OnInit, OnDestroy {
   basicSource: Array<DevuiSourceData> = [
-    {title: 'HTML', language: 'xml', code:  require('!!raw-loader!./basic/basic.component.html')},
-    {title: 'TS', language: 'typescript', code:  require('!!raw-loader!./basic/basic.component.ts')},
-    {title: 'CSS', language: 'css', code:  require('!!raw-loader!./basic/basic.component.css')}
+    { title: 'HTML', language: 'xml', code: require('./basic/basic.component.html?raw') },
+    { title: 'TS', language: 'typescript', code: require('./basic/basic.component.ts?raw') },
+    { title: 'SCSS', language: 'css', code: require('./basic/basic.component.css?raw') },
   ];
 
-  withoutContentDemoSource: Array<DevuiSourceData> = [
-    {title: 'HTML', language: 'xml', code:  require('!!raw-loader!./without-content/without-content.component.html')},
-    {title: 'TS', language: 'typescript', code:  require('!!raw-loader!./without-content/without-content.component.ts')}
+  withoutContentSource: Array<DevuiSourceData> = [
+    { title: 'HTML', language: 'xml', code: require('./without-content/without-content.component.html?raw') },
+    { title: 'TS', language: 'typescript', code: require('./without-content/without-content.component.ts?raw') },
   ];
 
-  customizeDemoSource: Array<DevuiSourceData> = [
-    {title: 'HTML', language: 'xml', code:  require('!!raw-loader!./customize-tmp/customize-tmp.component.html')},
-    {title: 'TS', language: 'typescript', code:  require('!!raw-loader!./customize-tmp/customize-tmp.component.ts')}
+  beforeChangeSource: Array<DevuiSourceData> = [
+    { title: 'HTML', language: 'xml', code: require('./before-change/before-change.component.html?raw') },
+    { title: 'TS', language: 'typescript', code: require('./before-change/before-change.component.ts?raw') },
   ];
+  customSource: Array<DevuiSourceData> = [
+    { title: 'HTML', language: 'xml', code: require('./custom/custom.component.html?raw') },
+    { title: 'TS', language: 'typescript', code: require('./custom/custom.component.ts?raw') },
+  ];
+  typePillsSource: Array<DevuiSourceData> = [
+    { title: 'HTML', language: 'xml', code: require('./type-pills/type-pills.component.html?raw') },
+    { title: 'TS', language: 'typescript', code: require('./type-pills/type-pills.component.ts?raw') },
+  ];
+  typeOptionsSource: Array<DevuiSourceData> = [
+    { title: 'HTML', language: 'xml', code: require('./type-options/type-options.component.html?raw') },
+    { title: 'TS', language: 'typescript', code: require('./type-options/type-options.component.ts?raw') },
+  ];
+  typeSliderSource: Array<DevuiSourceData> = [
+    { title: 'HTML', language: 'xml', code: require('./type-slider/type-slider.component.html?raw') },
+    { title: 'TS', language: 'typescript', code: require('./type-slider/type-slider.component.ts?raw') },
+  ];
+  typeWrappedSource: Array<DevuiSourceData> = [
+    { title: 'HTML', language: 'xml', code: require('./type-wrapped/type-wrapped.component.html?raw') },
+    { title: 'TS', language: 'typescript', code: require('./type-wrapped/type-wrapped.component.ts?raw') },
+  ];
+  ConfigurableSource: Array<DevuiSourceData> = [
+    { title: 'HTML', language: 'xml', code: require('./configurable-tabs/configurable-tabs.component.html?raw') },
+    { title: 'TS', language: 'typescript', code: require('./configurable-tabs/configurable-tabs.component.ts?raw') },
+    { title: 'SCSS', language: 'css', code: require('./configurable-tabs/configurable-tabs.component.scss?raw') },
+    {
+      title: 'tabs-transfer HTML',
+      language: 'xml',
+      code: require('./configurable-tabs/tabs-transfer/tabs-transfer.component.html?raw'),
+    },
+    {
+      title: 'tabs-transfer TS',
+      language: 'typescript',
+      code: require('./configurable-tabs/tabs-transfer/tabs-transfer.component.ts?raw'),
+    },
+  ];
+  navItems = [];
+  subs: Subscription = new Subscription();
+  constructor(private translate: TranslateService) { }
 
-  constructor() {
+  ngOnInit() {
+    this.subs.add(
+      this.translate.get('components.tabs.anchorLinkValues').subscribe((res) => {
+        this.setNavValues(res);
+      })
+    );
 
+    this.subs.add(
+      this.translate.onLangChange.subscribe((event: TranslationChangeEvent) => {
+        const values = this.translate.instant('components.tabs.anchorLinkValues');
+        this.setNavValues(values);
+      })
+    );
+  }
+
+  setNavValues(values) {
+    this.navItems = [
+      { dAnchorLink: 'basic-usage', value: values['basic-usage'] },
+      { dAnchorLink: 'type-pills', value: values['type-pills'] },
+      { dAnchorLink: 'type-options', value: values['type-options'] },
+      { dAnchorLink: 'type-slider', value: values['type-slider'] },
+      { dAnchorLink: 'type-wrapped', value: values['type-wrapped'] },
+      { dAnchorLink: 'no-set-content', value: values['no-set-content'] },
+      { dAnchorLink: 'custom-template', value: values['custom-template'] },
+      { dAnchorLink: 'intercept-tab-switch', value: values['intercept-tab-switch'] },
+      { dAnchorLink: 'custom-tabs-display-and-arrangement', value: values['custom-tabs-display-and-arrangement'] },
+    ];
+  }
+
+  ngOnDestroy() {
+    if (this.subs) {
+      this.subs.unsubscribe();
+    }
   }
 }

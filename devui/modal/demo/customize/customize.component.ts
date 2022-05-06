@@ -1,31 +1,29 @@
 import { Component } from '@angular/core';
-import { ModalService } from 'ng-devui';
-import { ModalAlertComponent } from '../modal-demo.component';
+import { ModalService } from 'ng-devui/modal';
+import { ModalAlertComponent } from './modal-alert.component';
+import { ModalNoBtnComponent } from './modal-no-btn.component';
 
 @Component({
   selector: 'd-customize',
   templateUrl: './customize.component.html',
-  styleUrls: ['./customize.component.css']
 })
 export class CustomizeComponent {
-
-  constructor(private modalService: ModalService) {
-
-  }
+  constructor(
+    private modalService: ModalService
+  ) { }
 
   openModal() {
     const results = this.modalService.open({
       id: 'modal-modal',
       width: '300px',
       backdropCloseable: false,
-      showAnimate: false,
       component: ModalAlertComponent,
       onClose: () => {
         console.log('on modal closed.');
       },
       data: {
         content: 'Error: This is an error message, please take a look.',
-        cancelBtnText: '我知道了',
+        cancelBtnText: 'Ok',
         onClose: (event) => {
           results.modalInstance.hide();
         },
@@ -34,4 +32,23 @@ export class CustomizeComponent {
     console.log(results);
   }
 
+  openModalWithOutBtn() {
+    const results = this.modalService.open({
+      id: 'modal-no-btn',
+      width: '300px',
+      backdropCloseable: true,
+      component: ModalNoBtnComponent,
+      onClose: () => {
+        console.log('on modal closed.');
+      },
+      data: {
+        content: 'Error: This is an error message, please take a look.',
+        cancelBtnText: 'Ok',
+        onClose: (event) => {
+          results.modalInstance.hide();
+        },
+      },
+    });
+    console.log(results);
+  }
 }

@@ -4,5 +4,12 @@
   "lib": {
     "entryFile": "./index.ts"
   },
-  "whitelistedNonPeerDependencies": ["angular", "date-fns", "lodash-es", "popper.js"]
+  "allowedNonPeerDependencies": [
+    "@angular/cdk",
+    "date-fns",
+    "lodash-es",
+    "@popperjs/core",
+    "enquire.js",
+    "css-vars-ponyfill"
+  ]
 }

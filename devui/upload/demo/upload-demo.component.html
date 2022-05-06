@@ -1,39 +1,54 @@
-<div class="demo-container">
-    <div class="demo-example">
-        <div class="demo-title">基本用法</div>
-        <div class="demo-text">
-            单文件上传、拖动文件上传、自动上传
-        </div>
-        <d-codebox id="basic" [sourceData]="basicSource">
-          <d-demo-upload-basic demo></d-demo-upload-basic>
-        </d-codebox>
+<div class="devui-demo-container" dAnchorBox dAnchorHashSupport [view]="{ top: 180, bottom: 0 }">
+  <d-demo-nav [navItems]="navItems"></d-demo-nav>
+  <div class="devui-demo-example" [dAnchor]="'basic-usage'">
+    <div class="devui-demo-title">{{ 'components.upload.basicDemo.title' | translate }}</div>
+    <div class="devui-demo-text">{{ 'components.upload.basicDemo.description' | translate }}</div>
+    <d-codebox id="basic" [sourceData]="basicSource">
+      <d-basic demo></d-basic>
+    </d-codebox>
+  </div>
+  <div class="devui-demo-example" [dAnchor]="'multi-files'">
+    <div class="devui-demo-title">{{ 'components.upload.multiDemo.title' | translate }}</div>
+    <div class="devui-demo-text">{{ 'components.upload.multiDemo.description' | translate }}</div>
+    <d-codebox id="multi" [sourceData]="multiSource">
+      <d-multi demo></d-multi>
+    </d-codebox>
+  </div>
+  <div class="devui-demo-example" [dAnchor]="'auto-upload'">
+    <div class="devui-demo-title">{{ 'components.upload.autoDemo.title' | translate }}</div>
+    <div class="devui-demo-text">{{ 'components.upload.autoDemo.description' | translate }}</div>
+    <d-codebox id="customize" [sourceData]="autoSource">
+      <d-auto demo></d-auto>
+    </d-codebox>
+  </div>
+  <div class="devui-demo-example" [dAnchor]="'custom'">
+    <div class="devui-demo-title">{{ 'components.upload.customizeDemo.title' | translate }}</div>
+    <div class="devui-demo-text">
+      {{ 'components.upload.customizeDemo.description' | translate }}
     </div>
-    <div class="demo-example">
-      <div class="demo-title">多文件上传</div>
-      <div class="demo-text">
-        多文件上传，支持拖动文件上传
-      </div>
-      <d-codebox id="multi" [sourceData]="multiSource">
-        <d-demo-upload-multi demo></d-demo-upload-multi>
-      </d-codebox>
+    <d-codebox id="customize" [sourceData]="customizeSource">
+      <d-customize demo></d-customize>
+    </d-codebox>
   </div>
-  <div class="demo-example">
-      <div class="demo-title">自动上传</div>
-      <div class="demo-text">
-          通过 autoUpload 设置自动上传
-      </div>
-      <d-codebox id="customize" [sourceData]="autoSource">
-        <d-demo-upload-auto demo></d-demo-upload-auto>
-      </d-codebox>
+  <div class="devui-demo-example" [dAnchor]="'dynamic-upload-options'">
+    <div class="devui-demo-title">{{ 'components.upload.dynamicDemo.title' | translate }}</div>
+    <div class="devui-demo-text">{{ 'components.upload.dynamicDemo.description' | translate }}</div>
+    <d-codebox id="dynamicUploadOptions" [sourceData]="dynamicUploadOptionsSource">
+      <d-dynamic-upload-options demo></d-dynamic-upload-options>
+    </d-codebox>
   </div>
-  <div class="demo-example">
-      <div class="demo-title">自定义</div>
-      <div class="demo-text">
-        自定义上传按钮，通过 preloadFilesRef 设置已选择文件列表模板，
-        通过 uploadedFilesRef 设置已上传文件列表模版
-      </div>
-      <d-codebox id="customize" [sourceData]="customizeSource">
-        <d-demo-upload-customize demo></d-demo-upload-customize>
-      </d-codebox>
+  <div class="devui-demo-example" [dAnchor]="'customize-area-upload'">
+    <div class="devui-demo-title">{{ 'components.upload.areaDemo.title' | translate }}</div>
+    <div class="devui-demo-text">{{ 'components.upload.areaDemo.description' | translate }}</div>
+    <d-codebox id="customizeAreaUpload" [sourceData]="customizeAreaUploadSource">
+      <d-customize-area-upload demo></d-customize-area-upload>
+    </d-codebox>
+  </div>
+  <div class="devui-demo-example" [dAnchor]="'upload-slice'">
+    <div class="devui-demo-title">{{ 'components.upload.sliceDemo.title' | translate }}</div>
+    <div class="devui-demo-text"></div>
+    <d-codebox id="components-upload-slice" [sourceData]="UploadDemoSlice">
+      <d-demo-upload-slice demo></d-demo-upload-slice>
+    </d-codebox>
   </div>
 </div>

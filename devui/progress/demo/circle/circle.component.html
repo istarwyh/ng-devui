@@ -1,18 +1,14 @@
-<section>
-    <h4>Circle Progress</h4>
-    <div class="progress-container">
-    <d-progress [isCircle]="true" [percentage]="80">
-    </d-progress>
-    </div>
-    <div class="progress-container">
-    <d-progress [isCircle]="true" [percentage]="80" [barbgcolor]="'#5cb85c'" [strokeWidth]="8">
-    </d-progress>
-    </div>
-    <div class="progress-container">
-    <d-progress [isCircle]="true" [percentage]="80" [barbgcolor]="'#5cb85c'">
-    <ng-template let-percentage = "percentage">
-    <span class="icon-position icon-right"></span>
+<div class="progress-container">
+  <d-progress [type]="'circle'" [percentage]="80" [showContent]="false" style="width: 130px; height: 130px"> </d-progress>
+</div>
+<div class="progress-container">
+  <d-progress [type]="'circle'" [percentage]="80" [strokeColor]="'#50D4AB'" [strokeWidth]="8" style="width: 130px; height: 130px">
+  </d-progress>
+</div>
+<div class="progress-container">
+  <d-progress [type]="'circle'" [percentage]="80" [strokeColor]="'#50D4AB'" style="width: 130px; height: 130px">
+    <ng-template let-percentage="percentage">
+      <span class="icon-position icon-right"></span>
     </ng-template>
-    </d-progress>
-    </div>
-</section>
+  </d-progress>
+</div>

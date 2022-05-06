@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, ContentChild, TemplateRef } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ContentChild, TemplateRef } from '@angular/core';
 
 @Component({
   selector: 'd-cell',
@@ -7,6 +7,6 @@ import { Component, ChangeDetectionStrategy, ContentChild, TemplateRef } from '@
 })
 export class DataTableCellViewTmplComponent {
 
-    @ContentChild(TemplateRef) template: TemplateRef<any>;
+  @ContentChild(TemplateRef) template: TemplateRef<any>;
 
 }

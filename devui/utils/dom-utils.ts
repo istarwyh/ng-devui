@@ -1,7 +1,7 @@
 import { ElementRef } from '@angular/core';
 import { WindowRef } from 'ng-devui/window-ref';
 
-export function centerWindowPosition(elementRef: ElementRef, windowRef: WindowRef): { top?: number, left?: number } {
+export function centerWindowPosition(elementRef: ElementRef, windowRef: WindowRef): { top?: number; left?: number } {
   if (!elementRef.nativeElement || !elementRef.nativeElement.getBoundingClientRect) {
     return {};
   }
@@ -13,8 +13,8 @@ export function centerWindowPosition(elementRef: ElementRef, windowRef: WindowRe
   const winWidth = windowRef.innerWidth;
 
   return {
-    left: ( winWidth - elmWidth) / 2,
-    top: ( winHeight - elmHeight) / 2
+    left: (winWidth - elmWidth) / 2,
+    top: (winHeight - elmHeight) / 2
   };
 }
 

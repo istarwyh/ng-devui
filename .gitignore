@@ -26,9 +26,11 @@
 !.vscode/extensions.json
 
 # misc
+/.angular/cache
 /.sass-cache
 /connect.lock
 /coverage
+/junit
 /libpeerconnection.log
 npm-debug.log
 yarn-error.log
@@ -38,6 +40,7 @@ testem.log
 # System Files
 .DS_Store
 Thumbs.db
-
+desktop.ini
+debug.log
 # package-lock
 package-lock.json

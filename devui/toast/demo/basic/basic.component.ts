@@ -1,23 +1,54 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, TemplateRef, ViewChild } from '@angular/core';
 
 @Component({
   selector: 'd-basic',
   templateUrl: './basic.component.html',
+  styles: [
+    `
+      d-button {
+        margin-right: 4px;
+      }
+      :host ::ng-deep .devui-btn-success {
+        background: #3dcca6 !important;
+        color: #fff;
+      }
+      :host ::ng-deep .devui-btn-warning {
+        background: #fa9841 !important;
+        color: #fff;
+      }
+    `,
+  ],
 })
-export class BasicComponent implements OnInit {
+export class BasicComponent {
+  @ViewChild('customTemplate') customTemplate: TemplateRef<any>;
   msgs: Array<Object> = [];
-  constructor() { }
 
-  ngOnInit() {
-  }
-
-  showToast(type) {
-    if (type === 'multiple') {
-      this.msgs = [{ severity: 'info', summary: '摘要', detail: '详细信息，测试换行，测试换行，测试换行，测试换行，测试换行' },
-        { severity: 'info', summary: '摘要', detail: '详细信息，测试换行，测试换行，测试换行，测试换行，测试换行' }];
-    } else {
-      this.msgs = [{ severity: type, summary: '摘要', detail: '详细信息，测试换行，测试换行，测试换行，测试换行，测试换行' }];
+  showToast(type: any) {
+    switch (type) {
+    case 'link':
+      this.msgs = [
+        /*
+            TODO:
+            The detail parameter will be deleted in the next major version.
+          */
+        { severity: 'info', summary: 'Relative', detail: `<a href="/home" target="_blank">Back to Home Page</a>` },
+        { severity: 'info', summary: 'Absolute', content: this.customTemplate, myInfo: 'Devui' },
+      ];
+      break;
+    case 'multiple':
+      this.msgs = [
+        { severity: 'info', summary: 'Summary', content: 'This is a test text. This is a test text. This is a test text.' },
+        { severity: 'info', summary: 'Summary', content: 'This is a test text. This is a test text. This is a test text.' },
+      ];
+      break;
+    case 'noTitle':
+      this.msgs = [{ severity: 'warn', content: 'This is a test text. This is a test text. This is a test text.' }];
+      break;
+    case 'plainText':
+      this.msgs = [{ severity: 'info', content: 'data：<id:gc5aa71bfd86943db9e3e8f34dc347a15><label:content>' }];
+      break;
+    default:
+      this.msgs = [{ severity: type, summary: 'Summary', content: 'This is a test text. This is a test text. This is a test text.' }];
     }
   }
-
 }

@@ -1,69 +1,100 @@
-import { Component } from '@angular/core';
-import { TreeNode } from 'ng-devui';
+import { Component, ViewChild } from '@angular/core';
+import { TreeComponent, TreeNode } from 'ng-devui/tree';
 
 @Component({
   selector: 'd-customize',
   templateUrl: './customize.component.html',
-  styleUrls: ['./customize.component.css']
+  styleUrls: ['./customize.component.scss']
 })
 export class CustomizeComponent {
+  @ViewChild('operableTree', { static: true }) operableTree: TreeComponent;
   currentSelectedNode;
   iconParentOpen = '<span class="icon icon-chevron-down"></span>';
   iconParentClose = '<span class="icon icon-collapse"></span>';
   iconLeaf = '<span></span>';
+  disableMouseEvent = false;
   data2 = [{
-    'title': '资源',
+    'title': 'parent node 1',
     'data': { 'type': 'mix' },
     'open': true,
+    'status': 'status1',
     'children': [{
-      'title': '拓扑',
+      'title': 'leaf node 1-1',
       'data': { 'type': 'mix' },
       'open': false,
+      'status': 'status1',
       'children': [{
-        'title': '拓扑管理',
-        'data': { 'type': 'ppt' }
+        'title': 'leaf node 1-1-1',
+        'data': { 'type': 'ppt' },
+        'status': 'status2',
       }, {
-        'title': 'IP拓扑管理',
-        'data': { 'type': 'xls' }
+        'title': 'leaf node 1-1-2',
+        'data': { 'type': 'xls' }, 'status': 'status2',
       }]
     }, {
-      'title': '监控工具',
+      'title': 'leaf node 1-2',
       'data': { 'type': 'mix' },
       'open': false,
+      'status': 'status1',
       'children': [{
-        'title': '工具',
-        'data': { 'type': 'ppt' }
+        'title': 'leaf node 1-2-1',
+        'data': { 'type': 'ppt' },
+        'status': 'status1',
       }, {
-        'title': '使用方法',
-        'data': { 'type': 'doc' }
+        'title': 'leaf node 1-2-2',
+        'data': { 'type': 'doc' },
+        'status': 'status1',
       }]
     }]
   }, {
-    'title': '演示文稿',
+    'title': 'parent node 2',
     'data': { 'type': 'ppt' },
     'open': false,
+    'status': 'status1',
     'children': [{
-      'title': '前端维护',
-      'data': { 'type': 'ppt' }
+      'title': 'leaf node 2-1',
+      'data': { 'type': 'ppt' },
+      'status': 'status1',
     }, {
-      'title': '后台维护',
-      'data': { 'type': 'ppt' }
+      'title': 'leaf node 2-2',
+      'data': { 'type': 'ppt' },
+      'status': 'status1',
     }],
   }, {
-    'title': '报表',
+    'title': 'parent node 3',
     'data': { 'type': 'xls' },
     'open': false,
+    'status': 'status1',
     'children': [{
-      'title': '报表数据',
-      'data': { 'type': 'xls' }
+      'title': 'leaf node 3-1',
+      'data': { 'type': 'xls' },
+      'status': 'status1',
     }, {
-      'title': '报表统计',
-      'data': { 'type': 'xls' }
+      'title': 'leaf node 3-2',
+      'data': { 'type': 'xls' },
+      'status': 'status1',
     }]
   }];
 
   onOperableNodeSelected(treeNode: TreeNode) {
     console.log('selected: ', treeNode);
     this.currentSelectedNode = treeNode;
+  }
+  onBlurEdit(treeNode) {
+    treeNode.editable = false;
+  }
+  showNode(node) {
+    console.log(node);
+  }
+  onToggle($event, node) {
+    if ($event && node.data.isHover) {
+      this.disableMouseEvent = true;
+    } else {
+      node.data.isHover = false;
+      this.disableMouseEvent = false;
+    }
+  }
+  activeNode(node) {
+    this.operableTree.treeFactory.activeNodeById(node.id);
   }
 }

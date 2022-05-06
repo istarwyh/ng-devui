@@ -1,6 +1,5 @@
-import { Input, Component, OnInit, ViewEncapsulation, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
-
-import * as HighLight from 'highlight.js/lib/highlight';
+import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import * as HighLight from 'highlight.js/lib/core';
 
 ['xml', 'css', 'typescript'].forEach((langName) => {
   // Using require() here because import() support hasn't landed in Webpack yet
@@ -13,12 +12,13 @@ import * as HighLight from 'highlight.js/lib/highlight';
   encapsulation: ViewEncapsulation.None,
   template     : `
     <pre [ngClass]="'language-'+language"><code #codeEl [innerText]="code"></code></pre>
-  `
+  `,
+  preserveWhitespaces: false,
 })
 export class DevUIHighlightComponent implements OnInit, AfterViewInit {
   // response: HighlightResult;
   _code;
-  @ViewChild('codeEl') codeElement: ElementRef;
+  @ViewChild('codeEl', { static: true }) codeElement: ElementRef;
   @Input() language: string;
 
   @Input()
@@ -31,7 +31,7 @@ export class DevUIHighlightComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    (<any>HighLight).highlightBlock(this.codeElement.nativeElement);
+    HighLight.highlightBlock(this.codeElement.nativeElement);
   }
 
   constructor() {
@@ -39,14 +39,4 @@ export class DevUIHighlightComponent implements OnInit, AfterViewInit {
 
   ngOnInit() {
   }
-
-  // onHighlight(e) {
-  //   this.response = {
-  //     language: e.language,
-  //     r: e.r,
-  //     second_best: '{...}',
-  //     top: '{...}',
-  //     value: '{...}'
-  //   };
-  // }
 }

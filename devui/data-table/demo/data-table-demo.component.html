@@ -1,83 +1,211 @@
-<div class="demo-container">
-  <div class="demo-example">
-    <div class="demo-title">基本用法</div>
-    <div class="demo-text">
-      简单表格，展示列表数据
+<div class="devui-demo-container" dAnchorBox dAnchorHashSupport [view]="{ top: 180, bottom: 0 }">
+  <d-demo-nav [navItems]="navItems"></d-demo-nav>
+  <div class="devui-demo-example" [dAnchor]="'basic-usage'">
+    <div class="devui-demo-title">{{ 'components.datatable.basicDemo.title' | translate }}</div>
+    <div class="devui-demo-text">
+      {{ 'components.datatable.basicDemo.description' | translate }}
     </div>
-    <d-codebox id="components-table-default" [sourceData]="basicSource">
-      <d-datatable-demo-basic demo></d-datatable-demo-basic>
+    <d-tabs [type]="'tabs'">
+      <d-tab id="tab1" title="{{ 'components.datatable.allDemo.tab1' | translate }}">
+        <d-codebox id="basic" [sourceData]="basicSource">
+          <d-basic demo></d-basic>
+        </d-codebox>
+      </d-tab>
+      <d-tab id="tab2" title="{{ 'components.datatable.allDemo.tab2' | translate }}">
+        <d-codebox id="basic-old" [sourceData]="basicOldSource">
+          <d-basic-old demo></d-basic-old>
+        </d-codebox>
+      </d-tab>
+    </d-tabs>
+  </div>
+  <div class="devui-demo-example" [dAnchor]="'mutil-styles'">
+    <div class="devui-demo-title">{{ 'components.datatable.mutilStylesDemo.title' | translate }}</div>
+    <d-codebox id="styels" [sourceData]="mutilStyles">
+      <d-mutil-styles demo></d-mutil-styles>
     </d-codebox>
   </div>
-  <div class="demo-example">
-    <div class="demo-title">表格交互</div>
-    <div class="demo-text">
-        支持列排序、列过滤、选中、调整列宽
-    </div>
-    <d-codebox id="components-table-one" [sourceData]="oneColumnSource">
-      <d-datatable-demo-onlyonecolumnsort demo></d-datatable-demo-onlyonecolumnsort>
-    </d-codebox>
-  </div>
-  <div class="demo-example">
-    <div class="demo-title">异步加载数据</div>
-    <div class="demo-text">
-      异步加载表格数据，列动态配置
-    </div>
-    <d-codebox id="components-table-async" [sourceData]="asyncSource">
+  <div class="devui-demo-example" [dAnchor]="'async-loading'">
+    <div class="devui-demo-title">{{ 'components.datatable.asyncDemo.title' | translate }}</div>
+    <div class="devui-demo-text">{{ 'components.datatable.asyncDemo.description' | translate }}</div>
+    <d-codebox id="table-async" [sourceData]="asyncSource">
       <d-datatable-demo-async demo></d-datatable-demo-async>
     </d-codebox>
   </div>
-  <div class="demo-example">
-    <div class="demo-title">表头固定</div>
-    <div class="demo-text">
-        设置表格最大高度，同时表头不跟随滚动
+  <div class="devui-demo-example" [dAnchor]="'table-interaction'">
+    <div class="devui-demo-title">{{ 'components.datatable.interactionDemo.title' | translate }}</div>
+    <div class="devui-demo-text">
+      {{ 'components.datatable.interactionDemo.description' | translate }}
     </div>
-    <d-codebox id="components-table-max" [sourceData]="maxHeightSource">
-      <d-datatable-demo-maxheight demo></d-datatable-demo-maxheight>
-    </d-codebox>
+    <d-tabs [type]="'tabs'">
+      <d-tab id="tab1" title="{{ 'components.datatable.allDemo.tab1' | translate }}">
+        <d-codebox id="interaction" [sourceData]="interactionSource">
+          <d-interaction demo></d-interaction>
+        </d-codebox>
+      </d-tab>
+      <d-tab id="tab2" title="{{ 'components.datatable.allDemo.tab2' | translate }}">
+        <d-codebox id="table-one" [sourceData]="interactionColumnSource">
+          <d-interaction-column demo></d-interaction-column>
+        </d-codebox>
+      </d-tab>
+    </d-tabs>
   </div>
-  <div class="demo-example">
-    <div class="demo-title">列表数据懒加载</div>
-    <div class="demo-text">
-        跟随滚动，懒加载，不断增加表格数据
-    </div>
-    <d-codebox id="components-table-lazy" [sourceData]="lazySource">
+  <div class="devui-demo-example" [dAnchor]="'table-check-options'">
+    <div class="devui-demo-title">{{ 'components.datatable.checkOptionsDemo.title' | translate }}</div>
+    <div class="devui-demo-text">{{ 'components.datatable.checkOptionsDemo.description' | translate }}</div>
+    <d-tabs [type]="'tabs'">
+      <d-tab id="tab1" title="{{ 'components.datatable.allDemo.tab1' | translate }}">
+        <d-codebox id="table-check-options" [sourceData]="checkOptionSource">
+          <d-check-options demo></d-check-options>
+        </d-codebox>
+      </d-tab>
+      <d-tab id="tab2" title="{{ 'components.datatable.allDemo.tab2' | translate }}">
+        <d-codebox id="d-check-options-column" [sourceData]="checkOptionColSource">
+          <d-check-options-column demo></d-check-options-column>
+        </d-codebox>
+      </d-tab>
+    </d-tabs>
+  </div>
+  <div class="devui-demo-example" [dAnchor]="'lazy-loading-of-list-data'">
+    <div class="devui-demo-title">{{ 'components.datatable.lazyDemo.title' | translate }}</div>
+    <div class="devui-demo-text">{{ 'components.datatable.lazyDemo.description' | translate }}</div>
+    <d-codebox id="table-lazy" [sourceData]="lazySource">
       <d-datatable-demo-lazyloaddata demo></d-datatable-demo-lazyloaddata>
     </d-codebox>
   </div>
-  <div class="demo-example">
-    <div class="demo-title">多行表头</div>
-    <div class="demo-text">
-        表头支持分组，显示多行
-    </div>
-    <d-codebox id="components-table-multi" [sourceData]="multiSource">
-      <d-datatable-demo-multiheader demo></d-datatable-demo-multiheader>
+  <div class="devui-demo-example" [dAnchor]="'virtual-scroll'">
+    <div class="devui-demo-title">{{ 'components.datatable.virtualScrollDemo.title' | translate }}</div>
+    <div class="devui-demo-text">{{ 'components.datatable.virtualScrollDemo.description' | translate }}</div>
+    <d-codebox id="cell-merge" [sourceData]="virtualScrollSource">
+      <d-virtual-scroll demo></d-virtual-scroll>
     </d-codebox>
   </div>
-  <div class="demo-example">
-    <div class="demo-title">编辑单元格</div>
-    <div class="demo-text">
-        通过列的编辑功能（editable）、类型（fieldType）和额外配置（extraOptions）来配置单元格的编辑功能
-    </div>
-    <d-codebox id="components-table-editable" [sourceData]="editableSource">
-      <d-datatable-demo-editable demo></d-datatable-demo-editable>
+  <div class="devui-demo-example" [dAnchor]="'table-fixing'">
+    <div class="devui-demo-title">{{ 'components.datatable.maxHeightDemo.title' | translate }}</div>
+    <div class="devui-demo-text">{{ 'components.datatable.maxHeightDemo.description' | translate }}</div>
+    <d-codebox id="table-max" [sourceData]="maxHeightSource">
+      <d-datatable-demo-maxheight demo></d-datatable-demo-maxheight>
     </d-codebox>
   </div>
-  <div class="demo-example">
-    <div class="demo-title">扩展额外行</div>
-    <div class="demo-text">
-        通过headerExpandConfig和行数据的expandConfig来配置表头和某一行下的可自定义的扩展行，通过showDetail来配置扩展行的展开图标
-    </div>
-    <d-codebox id="components-table-expand" [sourceData]="expandTableSource">
-      <d-expand-row demo></d-expand-row>
+  <div class="devui-demo-example" [dAnchor]="'fixed-virtual-scroll'">
+    <div class="devui-demo-title">{{ 'components.datatable.fixHeightVirtualScrollDemo.title' | translate }}</div>
+    <div class="devui-demo-text">{{ 'components.datatable.fixHeightVirtualScrollDemo.description' | translate }}</div>
+    <d-codebox id="table-max" [sourceData]="fixHeightVirtualScrollSource">
+      <d-fix-header-virtual-scroll demo></d-fix-header-virtual-scroll>
     </d-codebox>
   </div>
-  <div class="demo-example">
-    <div class="demo-title">树形表格</div>
-    <div class="demo-text">
-        通过列的nestedColumn属性和行数据的children字段来配置渲染树形表格
+  <div class="devui-demo-example" [dAnchor]="'header-grouping'">
+    <div class="devui-demo-title">{{ 'components.datatable.headerGroupingDemo.title' | translate }}</div>
+    <div class="devui-demo-text">
+      <div>{{ 'components.datatable.headerGroupingDemo.description' | translate }}</div>
     </div>
-    <d-codebox id="components-tree-table" [sourceData]="treeTableSource">
-      <d-tree-data demo></d-tree-data>
+    <d-tabs [type]="'tabs'">
+      <d-tab id="tab1" title="{{ 'components.datatable.allDemo.tab1' | translate }}">
+        <d-codebox id="header-grouping" [sourceData]="headerGroupingSource">
+          <d-header-grouping demo></d-header-grouping>
+        </d-codebox>
+      </d-tab>
+
+      <d-tab id="tab2" title="{{ 'components.datatable.allDemo.tab2' | translate }}">
+        <d-codebox id="table-multi" [sourceData]="multiSource">
+          <d-datatable-demo-multiheader demo></d-datatable-demo-multiheader>
+        </d-codebox>
+      </d-tab>
+    </d-tabs>
+  </div>
+  <div class="devui-demo-example" [dAnchor]="'edit-cell'">
+    <div class="devui-demo-title">{{ 'components.datatable.editableDemo.title' | translate }}</div>
+    <div class="devui-demo-text">
+      <div>{{ 'components.datatable.editableDemo.description' | translate }}</div>
+    </div>
+    <d-tabs [type]="'tabs'">
+      <d-tab id="tab1" title="{{ 'components.datatable.allDemo.tab1' | translate }}">
+        <d-codebox id="editable" [sourceData]="editableSource">
+          <d-editable demo></d-editable>
+        </d-codebox>
+      </d-tab>
+      <d-tab id="tab2" title="{{ 'components.datatable.allDemo.tab2' | translate }}">
+        <d-codebox id="editable-old" [sourceData]="editableOldSource">
+          <d-editable-old demo></d-editable-old>
+        </d-codebox>
+      </d-tab>
+    </d-tabs>
+  </div>
+  <div class="devui-demo-example" [dAnchor]="'expand-row'">
+    <div class="devui-demo-title">{{ 'components.datatable.expandRowDemo.title' | translate }}</div>
+    <div class="devui-demo-text">
+      <div>{{ 'components.datatable.expandRowDemo.description' | translate }}</div>
+    </div>
+    <d-tabs [type]="'tabs'">
+      <d-tab id="tab1" title="{{ 'components.datatable.allDemo.tab1' | translate }}">
+        <d-codebox id="expand-row" [sourceData]="expandRowSource">
+          <d-expand-row demo></d-expand-row>
+        </d-codebox>
+      </d-tab>
+      <d-tab id="tab2" title="{{ 'components.datatable.allDemo.tab2' | translate }}">
+        <d-codebox id="expand-row-old" [sourceData]="expandRowOldSource">
+          <d-expand-row-old demo></d-expand-row-old>
+        </d-codebox>
+      </d-tab>
+    </d-tabs>
+  </div>
+  <div class="devui-demo-example" [dAnchor]="'tree-form'">
+    <div class="devui-demo-title">{{ 'components.datatable.treeTableDemo.title' | translate }}</div>
+    <div class="devui-demo-text">{{ 'components.datatable.treeTableDemo.description' | translate }}</div>
+    <d-tabs [type]="'tabs'">
+      <d-tab id="tab1" title="{{ 'components.datatable.allDemo.tab1' | translate }}">
+        <d-codebox id="tree-table" [sourceData]="treeTableSource">
+          <d-tree-data demo></d-tree-data>
+        </d-codebox>
+      </d-tab>
+      <d-tab id="tab2" title="{{ 'components.datatable.allDemo.tab2' | translate }}">
+        <d-codebox id="tree-table" [sourceData]="treeTableOldSource">
+          <d-tree-table-old demo></d-tree-table-old>
+        </d-codebox>
+      </d-tab>
+    </d-tabs>
+  </div>
+  <div class="devui-demo-example" [dAnchor]="'fixed-column'">
+    <div class="devui-demo-title">{{ 'components.datatable.fixColumnDemo.title' | translate }}</div>
+    <div class="devui-demo-text">{{ 'components.datatable.fixColumnDemo.description' | translate }}</div>
+    <d-tabs [type]="'tabs'">
+      <d-tab id="tab1" title="{{ 'components.datatable.allDemo.tab1' | translate }}">
+        <d-codebox id="fix-column" [sourceData]="fixColumnSource">
+          <d-fix-column demo></d-fix-column>
+        </d-codebox>
+      </d-tab>
+      <d-tab id="tab2" title="{{ 'components.datatable.allDemo.tab2' | translate }}">
+        <d-codebox id="fix-column-old" [sourceData]="fixColumnOldSource">
+          <d-fix-column-old demo></d-fix-column-old>
+        </d-codebox>
+      </d-tab>
+    </d-tabs>
+  </div>
+  <div class="devui-demo-example" [dAnchor]="'column-dragging'">
+    <div class="devui-demo-title">{{ 'components.datatable.dragColumnDemo.title' | translate }}</div>
+    <div class="devui-demo-text">{{ 'components.datatable.dragColumnDemo.description' | translate }}</div>
+    <d-codebox id="drag-column" [sourceData]="dragColumnSource">
+      <d-drag-column demo></d-drag-column>
+    </d-codebox>
+  </div>
+  <div class="devui-demo-example" [dAnchor]="'cell-merge'">
+    <div class="devui-demo-title">{{ 'components.datatable.cellMergeDemo.title' | translate }}</div>
+    <div class="devui-demo-text">{{ 'components.datatable.cellMergeDemo.description' | translate }}</div>
+    <d-codebox id="cell-merge" [sourceData]="cellMergeSource">
+      <d-cell-merge demo></d-cell-merge>
+    </d-codebox>
+  </div>
+  <div class="devui-demo-example" [dAnchor]="'drag-row'">
+    <div class="devui-demo-title">{{ 'components.datatable.dragRowDemo.title' | translate }}</div>
+    <div class="devui-demo-text">{{ 'components.datatable.dragRowDemo.description' | translate }}</div>
+    <d-codebox id="cell-merge" [sourceData]="dragRowSource">
+      <d-drag-row demo></d-drag-row>
+    </d-codebox>
+  </div>
+  <div class="devui-demo-example" [dAnchor]="'muti-drag-row'">
+    <div class="devui-demo-title">{{ 'components.datatable.batchDragRowDemo.title' | translate }}</div>
+    <div class="devui-demo-text">{{ 'components.datatable.batchDragRowDemo.description' | translate }}</div>
+    <d-codebox id="cell-merge" [sourceData]="mutiDragRowSource">
+      <d-muti-drag-row demo></d-muti-drag-row>
     </d-codebox>
   </div>
 </div>

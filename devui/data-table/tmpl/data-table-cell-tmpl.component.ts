@@ -1,7 +1,6 @@
-import { Component, ChangeDetectionStrategy, ContentChild, Input } from '@angular/core';
-import { DataTableCellViewTmplComponent } from './data-table-cell-view-tmpl.component';
+import { ChangeDetectionStrategy, Component, ContentChild, Input } from '@angular/core';
 import { DataTableCellEditTmplComponent } from './data-table-cell-edit-tmpl.component';
-import { DataTableCellFilterTmplComponent } from './data-table-cell-filter-tmpl.component';
+import { DataTableCellViewTmplComponent } from './data-table-cell-view-tmpl.component';
 
 @Component({
   selector: 'd-cell-template',
@@ -12,6 +11,5 @@ export class DataTableCellTmplComponent {
   @Input() type: string;
   @ContentChild(DataTableCellViewTmplComponent) view: DataTableCellViewTmplComponent;
   @ContentChild(DataTableCellEditTmplComponent) edit: DataTableCellEditTmplComponent;
-  @ContentChild(DataTableCellFilterTmplComponent) filter: DataTableCellFilterTmplComponent;
 
 }

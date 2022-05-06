@@ -11,12 +11,14 @@ export class SafePipe implements PipeTransform {
 
   transform(value, type) {
     switch (type) {
-      case 'html':
-        return this.sanitizer.bypassSecurityTrustHtml(value);
-      case 'style':
-        return this.sanitizer.bypassSecurityTrustStyle(value);
-      default:
-        throw new Error(`Unable to bypass security for invalid type: ${type}`);
+    case 'html':
+      return this.sanitizer.bypassSecurityTrustHtml(value);
+    case 'style':
+      return this.sanitizer.bypassSecurityTrustStyle(value);
+    case 'url':
+      return this.sanitizer.bypassSecurityTrustUrl(value);
+    default:
+      throw new Error(`Unable to bypass security for invalid type: ${type}`);
     }
   }
 }

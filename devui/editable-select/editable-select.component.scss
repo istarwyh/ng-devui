@@ -1,0 +1,34 @@
+@import '../style/theme/color';
+@import '../style/core/animation';
+
+.devui-select-chevron-icon {
+  display: inline-flex;
+  vertical-align: middle;
+  transition: transform $devui-animation-duration-slow $devui-animation-ease-in-out-smooth;
+}
+
+.devui-select-open .devui-select-chevron-icon {
+  transform: rotate(180deg);
+}
+
+.devui-select-chevron-icon svg path {
+  fill: $devui-text-weak;// TODO: Color-Question
+}
+
+input::-ms-clear {
+  display: none;
+}
+
+.devui-no-data-tip {
+  user-select: none;
+  cursor: not-allowed;
+}
+
+.devui-form-control {
+  outline: none;
+  padding-right: 24px;
+}
+
+.devui-form-group.devui-has-feedback > .devui-form-control-feedback {
+  line-height: 26px;
+}

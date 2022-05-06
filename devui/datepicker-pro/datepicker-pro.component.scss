@@ -1,0 +1,67 @@
+@import '../style/theme/color';
+
+.devui-datepicker-pro-wrapper {
+  display: inline-block;
+  background-color: $devui-base-bg;
+
+  .devui-single-picker {
+    padding-left: 8px;
+    position: relative;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 24px;
+
+    .devui-input {
+      height: 26px;
+      padding: 4px 8px;
+      width: calc(100% - 16px);
+    }
+
+    &-icon {
+      vertical-align: bottom;
+    }
+
+    .close-icon-wrapper {
+      padding: 0 8px;
+      vertical-align: baseline;
+      visibility: hidden;
+
+      .close-icon {
+        background-color: $devui-line;
+        border-radius: 50%;
+        width: 12px;
+        height: 12px;
+        display: inline-block;
+        line-height: 12px;
+
+        svg {
+          vertical-align: middle;
+
+          path {
+            fill: $devui-light-text;
+          }
+        }
+
+        &:hover {
+          background-color: $devui-icon-fill-active;
+        }
+      }
+    }
+
+    &.devui-has-value:hover:not(.devui-disabled) .close-icon-wrapper {
+      visibility: visible;
+    }
+
+    &:not(.devui-disabled) .close-icon-wrapper {
+      cursor: pointer;
+    }
+  }
+
+  .devui-input-group > .devui-input {
+    display: inline-block;
+
+    &::-ms-clear {
+      display: none;
+    }
+  }
+}

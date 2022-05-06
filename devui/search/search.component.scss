@@ -1,87 +1,199 @@
+@import '../style/theme/color';
+@import '../style/core/_font';
+
+.devui-search {
+  .devui-serach-line {
+    border-color: $devui-dividing-line;
+  }
+}
+
+svg.svg-icon-clear path,
+svg.svg-icon-search path {
+  fill: $devui-icon-text;
+}
+
 :host {
-  display: block;
+  display: inline-block;
 }
 
 .devui-search {
   position: relative;
-  &-sm {
-    .devui-input {
-      padding-right: 55px;
+
+  .devui-input {
+    height: 28px;
+    padding: 4px 8px;
+    font-size: $devui-font-size;
+    padding-right: 28px;
+    text-overflow: ellipsis;
+
+    &.devui-icon-left {
+      padding-left: 32px;
     }
-  }
-  &-lg {
-    .devui-input {
-      padding-right: 66px;
+
+    &.devui-search-no-border {
+      border: none;
+    }
+
+    &.devui-clear-exit:not(.devui-icon-left) {
+      padding-right: 60px;
+    }
+
+    &-sm {
+      height: 26px;
+      padding: 4px 8px;
+      font-size: $devui-font-size;
+      padding-right: 24px;
+
+      &.devui-clear-exit:not(.devui-icon-left) {
+        padding-right: 56px;
+      }
+    }
+
+    &-lg {
+      height: 46px;
+      padding: 12px 16px;
+      font-size: $devui-font-size-lg;
+      line-height: 24px;
+      padding-right: 36px;
+
+      &.devui-clear-exit:not(.devui-icon-left) {
+        padding-right: 72px;
+      }
+    }
+
+    &::-ms-clear {
+      display: none;
+    }
+
+    &:disabled {
+      background-color: $devui-disabled-bg;
+      border-color: $devui-disabled-line;
+      color: $devui-disabled-text;
+
+      & + .devui-search-icon {
+        svg path {
+          fill: $devui-disabled-text;
+        }
+      }
     }
   }
 
-  .devui-input {
-    padding-right: 60px;
-    text-overflow: ellipsis;
-  }
   .icon {
     cursor: pointer;
   }
 
   .devui-search-icon {
     position: absolute;
-    top: 50%;
-    right: 10px;
-    margin-top: -7px;
+    width: auto;
+    pointer-events: all;
+    cursor: pointer;
+    height: 100%;
+    line-height: 28px;
+    padding: 0 12px;
+    top: 0;
+    right: 0;
+    z-index: 2;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &.devui-icon-left {
+      left: 8px;
+      right: auto;
+      padding-left: 0;
+    }
+
     > svg {
+      height: 16px;
+      width: 16px;
+    }
+
+    &-sm {
+      height: 26px;
+      line-height: 26px;
+      padding: 0 12px;
+
+      > svg {
         height: 14px;
         width: 14px;
-    }
-    &-sm {
-      margin-top: -6px;
-      > svg {
-          height: 12px;
-          width: 12px;
       }
     }
+
     &-lg {
-      margin-top: -8px;
+      height: 46px;
+      line-height: 46px;
+
       > svg {
-          height: 18px;
-          width: 18px;
+        height: 18px;
+        width: 18px;
       }
     }
   }
 
   .devui-search-clear {
     position: absolute;
-    top: 50%;
-    right: 42px;
-    margin-top: -7px;
-    font-size: 14px;
-    &-sm {
-      right: 40px;
-      margin-top: -6px;
-      font-size: 12px;
+    width: auto;
+    top: 0;
+    right: 36px;
+    padding: 0 8px;
+    pointer-events: all;
+    cursor: pointer;
+    height: 100%;
+    line-height: 28px;
+    font-size: $devui-font-size-lg;
+    z-index: 2;
+    display: none;
+
+    &.devui-icon-left {
+      right: 0;
     }
+
+    &.devui-clear-exit {
+      display: block;
+    }
+
+    &-sm {
+      line-height: 26px;
+      padding: 0 8px;
+    }
+
     &-lg {
-      right: 44px;
-      margin-top: -8px;
-      font-size: 16px;
+      right: 46px;
+      line-height: 46px;
+      padding: 0 8px;
+    }
+
+    &:hover {
+      svg.svg-icon-search path {
+        fill: $devui-icon-fill-active;
+      }
     }
   }
 
-  .devui-serach-line {
+  .devui-search-line {
     position: absolute;
-    right: 32px;
-    height: 70%;
-    top: 15%;
+    right: 36px;
+    height: 46%;
+    top: 27%;
     width: 1px;
     border-left-width: 1px;
     border-left-style: solid;
-    line-height: 32px;
-    &-sm {
-      line-height: 30px;
-      right: 30px;
+    border-color: $devui-dividing-line;
+    line-height: 28px;
+    display: none;
+
+    &.devui-clear-exit {
+      display: block;
     }
+
+    &-sm {
+      line-height: 26px;
+    }
+
     &-lg {
-        line-height: 34px;
-        right: 34px;
+      line-height: 46px;
+      right: 46px;
     }
   }
 }

@@ -4,11 +4,13 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
+  EventEmitter,
   forwardRef,
   Input,
   OnChanges,
   OnDestroy,
   OnInit,
+  Output,
   SimpleChanges,
   ViewChild
 } from '@angular/core';
@@ -18,7 +20,6 @@ import { distinctUntilChanged, map, pluck, takeUntil, tap } from 'rxjs/operators
 
 const SLIDER_CONTROL_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
-  // tslint:disable-next-line
   useExisting: forwardRef(() => SliderComponent),
   multi: true
 };
@@ -29,6 +30,7 @@ const SLIDER_CONTROL_VALUE_ACCESSOR: any = {
   styleUrls: ['./slider.component.scss'],
   providers: [SLIDER_CONTROL_VALUE_ACCESSOR],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  preserveWhitespaces: false,
 })
 
 export class SliderComponent implements OnInit, OnChanges, ControlValueAccessor, OnDestroy, AfterViewInit {
@@ -47,14 +49,15 @@ export class SliderComponent implements OnInit, OnChanges, ControlValueAccessor,
   private mouseOverHandler: Subscription;
   private mouseLeaveHandler: Subscription;
 
-  @ViewChild('slider') slider: ElementRef;
-  @ViewChild('sliderHandle') sliderHandle: ElementRef;
-  @ViewChild('sliderTrack') sliderTrack: ElementRef;
-  @ViewChild('sliderRail') sliderRail: ElementRef;
+  @ViewChild('slider', { static: true }) slider: ElementRef;
+  @ViewChild('sliderHandle', { static: true }) sliderHandle: ElementRef;
+  @ViewChild('sliderTrack', { static: true }) sliderTrack: ElementRef;
+  @ViewChild('sliderRail', { static: true }) sliderRail: ElementRef;
   @Input() max = 100;
   @Input() min = 0;
   @Input() step = 1;
   @Input() disabled = false;
+  @Output() afterChange = new EventEmitter<number>();
   @Input() tipsRenderer: (value: number) => string = (value) => `${value}`;
 
   ngOnInit() {
@@ -67,7 +70,9 @@ export class SliderComponent implements OnInit, OnChanges, ControlValueAccessor,
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes.hasOwnProperty('min') || changes.hasOwnProperty('max') || changes.hasOwnProperty('step')) {
+    if (Object.prototype.hasOwnProperty.call(changes, 'min')
+      || Object.prototype.hasOwnProperty.call(changes, 'max')
+      || Object.prototype.hasOwnProperty.call(changes, 'step')) {
       this.checkRangeValues(this.min, this.max);
       this.checkStepValue();
     }
@@ -93,14 +98,14 @@ export class SliderComponent implements OnInit, OnChanges, ControlValueAccessor,
   }
 
   writeValue(newValue: number): void {
-    this.setValue(this.ensureValueInRange(newValue));
+    this.setValue(this.ensureValueInRange(newValue), false);
   }
 
-  private onTouchedCallback = (v: any) => {
-  }
+  private onTouchedCallback = () => {
+  };
 
   private onChangeCallback = (v: any) => {
-  }
+  };
 
   private checkRangeValues(minValue, maxValue) {
     if (maxValue <= minValue) {
@@ -109,7 +114,7 @@ export class SliderComponent implements OnInit, OnChanges, ControlValueAccessor,
   }
 
   private checkStepValue() {
-    if (this.step < 0 || !!!this.step) {
+    if (this.step < 0 || !this.step) {
       throw new Error('step value must be greater than 0.');
     } else if ((this.max - this.min) % this.step) {
       throw new Error('(max - min) must be divisible by step.');
@@ -140,7 +145,7 @@ export class SliderComponent implements OnInit, OnChanges, ControlValueAccessor,
   private updateStyle(percentage) {
     percentage = Math.min(1, Math.max(0, percentage));
     this.sliderTrack.nativeElement.style.width = `${percentage * 100}%`;
-    this.sliderHandle.nativeElement.style.left = `${percentage * 100}%`;
+    this.sliderHandle.nativeElement.style.left = `calc(${percentage * 100}% - 7px)`;
   }
 
   private registerMouseEventsListeners(): void {
@@ -201,7 +206,9 @@ export class SliderComponent implements OnInit, OnChanges, ControlValueAccessor,
   }
 
   private mouseStopMoving(): void {
+    this.afterChange.emit(this.value);
     this.handleController(false);
+    this.onTouchedCallback();
     this.cdr.markForCheck();
   }
 
@@ -256,16 +263,18 @@ export class SliderComponent implements OnInit, OnChanges, ControlValueAccessor,
     }
   }
 
-  private setValue(value: number | null): void {
-    if (!(this.value === value)) {
+  private setValue(value: number | null, triggerOnChanges = true): void {
+    if (this.value !== value) {
       this.value = value;
       this.updateTrackAndHandle();
     }
-    this.onChangeCallback(this.value);
+    if (triggerOnChanges) {
+      this.onChangeCallback(this.value);
+    }
   }
 
   private ensureValueInRange(value: number | null): number {
-    let safeValue = value;
+    let safeValue;
     if (!this.valueMustBeValid(value)) {
       safeValue = this.min;
     } else {

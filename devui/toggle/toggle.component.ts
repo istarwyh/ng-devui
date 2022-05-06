@@ -1,4 +1,7 @@
-import { Component, EventEmitter, forwardRef, HostListener, Input, Output } from '@angular/core';
+import {
+  Component, EventEmitter, forwardRef, HostListener, Input,
+  Output, TemplateRef
+} from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Observable } from 'rxjs';
 
@@ -11,18 +14,33 @@ import { Observable } from 'rxjs';
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => ToggleComponent),
     multi: true
-  }]
+  }],
+  preserveWhitespaces: false,
 })
-
 export class ToggleComponent implements ControlValueAccessor {
   private _checked: boolean;
   private _disabled: boolean;
+  content = '';
 
-  @Input() size: 'small' | 'medium' | 'large' = 'small';
+  @Input() size: 'sm' | '' | 'lg' = '';
   @Input() color: string;
   @Input() beforeChange: (value) => boolean | Promise<boolean> | Observable<boolean>;
+  @Input() checkedContent: string | TemplateRef<any>;
+  @Input() uncheckedContent: string | TemplateRef<any>;
+
+  get customTemplate() {
+    const result = this.checked ? this.checkedContent : this.uncheckedContent;
+    if (result instanceof TemplateRef) {
+      this.content = '';
+      return result;
+    } else {
+      this.content = result || '';
+      return null;
+    }
+  }
+
   @Input() set checked(v: boolean) {
-    this._checked = v !== false;
+    this._checked = v === true;
   }
 
   get checked() {
@@ -30,7 +48,7 @@ export class ToggleComponent implements ControlValueAccessor {
   }
 
   @Input() set disabled(v: boolean) {
-    this._disabled = v !== false;
+    this._disabled = v === true;
   }
 
   get disabled() {
@@ -39,10 +57,8 @@ export class ToggleComponent implements ControlValueAccessor {
 
   @Output() change = new EventEmitter<boolean>();
 
-  private onTouchedCallback = (v: any) => {
-  }
-  private onChangeCallback = (v: any) => {
-  }
+  private onTouchedCallback = () => {};
+  private onChangeCallback = (v: any) => {};
 
   @HostListener('click')
   onToggle() {
@@ -56,7 +72,7 @@ export class ToggleComponent implements ControlValueAccessor {
       this.checked = !this.checked;
       this.change.emit(this.checked);
       this.onChangeCallback(this.checked);
-      this.onTouchedCallback(this.checked);
+      this.onTouchedCallback();
     });
   }
 

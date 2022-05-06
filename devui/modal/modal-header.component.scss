@@ -1,32 +1,95 @@
-
 @import '../style/theme/color';
-@import '../style/theme/variables';
-@import '../style/mixins/index';
+@import '../style/core/_font';
 
-.modal-header{
-    padding: 10px 20px 0 20px;
-    height: 43px;
-    .standard-title {
-      color: $dark1;
-      letter-spacing: 0;
-      font-size: 16px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+.modal-header {
+  padding: 32px 32px 0 32px;
+  height: 56px;
+  position: relative;
+  border: none; // 覆盖bootStrap默认样式
+
+  .standard-title {
+    height: 26px;
+    line-height: 26px;
+    color: $devui-text;
+    letter-spacing: 0;
+    font-size: $devui-font-size-modal-title;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  button.close {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    font-size: $devui-font-size-icon;
+    font-weight: bold;
+    line-height: 1;
+    color: #000000; // TODO: color not variable
+    // text-shadow: 0 1px 0 $devui-base-bg;
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+    -webkit-appearance: none;
+
+    svg.svg-icon-close polygon {
+      fill: $devui-text-weak;
+    }
+
+    &:hover {
+      background: $devui-list-item-hover-bg;
+
+      svg.svg-icon-close polygon {
+        fill: $devui-icon-fill-active;
+      }
+    }
   }
 }
 
-button.close {
-  float: right;
-  font-size: 21px;
+.header-alert-icon {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 8px;
+  width: 24px;
+  height: 24px;
+  line-height: 16px;
+  text-align: center;
+
+  .devui-icon {
+    width: 24px;
+    height: 24px;
+
+    circle,
+    polygon {
+      fill: $devui-light-text;
+    }
+
+    &.devui-icon-success path {
+      fill: $devui-success;
+    }
+
+    &.devui-icon-warning path {
+      fill: $devui-warning-line;
+    }
+
+    &.devui-icon-info path {
+      fill: $devui-info;
+    }
+
+    &.devui-icon-error path {
+      fill: $devui-danger;
+    }
+  }
+}
+
+.title-text {
+  font-size: $devui-font-size-modal-title;
   font-weight: bold;
-  line-height: 1;
-  color: #000;
-  text-shadow: 0 1px 0 $white;
-  filter: alpha(opacity=20);
-  opacity: 0.2;
-  cursor: pointer;
-  background: transparent;
-  border: 0;
-  -webkit-appearance: none;
+  vertical-align: middle;
+}
+
+button {
+  outline: none;
+  height: 20px;
+  width: 20px;
 }

@@ -1,0 +1,10 @@
+<div class="devui-backtop-custom">
+  <span class="icon-chevron-up"></span>
+</div>
+<d-back-top (backTopEvent)="backTop($event)" [customTemplate]="customTemplate" [bottom]="'100px'" [visibleHeight]="200">
+  <ng-template #customTemplate>
+    <div class="devui-backtop-custom" dTooltip [content]="'BackTop'" [position]="'left'">
+      <span class="icon-chevron-up"></span>
+    </div>
+  </ng-template>
+</d-back-top>

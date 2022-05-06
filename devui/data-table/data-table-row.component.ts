@@ -1,61 +1,79 @@
-import { ChangeDetectorRef, Component, EventEmitter, HostListener, Input, Output, NgZone, ElementRef, OnInit } from '@angular/core';
-import { DataTableComponent } from './data-table.component';
+import {
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  EventEmitter,
+  forwardRef,
+  HostBinding,
+  Inject,
+  Input,
+  NgZone,
+  OnInit,
+  Output
+} from '@angular/core';
+import { DATA_TABLE_ROW } from './data-table-row.token';
+import { DATA_TABLE } from './data-table.token';
 import { ForceUpdateReason } from './force-update-reason.model';
 import { DataTableColumnTmplComponent } from './tmpl/data-table-column-tmpl.component';
-import { DataTableTmplsComponent } from './tmpl/data-table-tmpls.component';
 
 @Component({
   selector: 'd-data-table-row, [dDataTableRow]',
   templateUrl: './data-table-row.component.html',
-  styleUrls: ['./data-table-row.component.scss']
+  styleUrls: ['./data-table-row.component.scss'],
+  preserveWhitespaces: false,
+  providers: [{
+    provide: DATA_TABLE_ROW,
+    useExisting: forwardRef(() => DataTableRowComponent)
+  }],
 })
 export class DataTableRowComponent implements OnInit {
+  @Input() rowItem: any;
+  @HostBinding('style.font-weight') fontWeight = 'normal';
+  @HostBinding('style.vertical-align') verticalAlign = 'middle';
   @Input() selectable: boolean;
   @Input() checkable: boolean;
-  @Input() showDetail: boolean;
-  @Input() rowItem: any;
+  @Input() showExpandToggle: boolean;
   @Input() rowIndex: number;
   @Input() allChecked: boolean;
   @Input() columns: DataTableColumnTmplComponent[];
-  @Input() checkableColumn: DataTableColumnTmplComponent;
-  @Input() showDetailColumn: DataTableColumnTmplComponent;
-  @Input() dataTableTemplates: DataTableTmplsComponent;
   @Input() editModel: string;
   @Input() editRowItem: any;
   @Input() resizeable: boolean;
   @Input() timeout: number;
   @Input() tableLevel: number;
   @Input() nestedIndex: string;
-  @Output() detailChange = new EventEmitter();
-  rowHovered = false;
+  @Input() generalRowHoveredData: boolean;
+  @Output() detailChange = new EventEmitter<any>();
 
   forceUpdateEvent = new EventEmitter<ForceUpdateReason>();
 
   clickCount = 0; // 记录点击次数
   timeoutId; // 延时id
 
-  constructor(public dt: DataTableComponent, private changeDetectorRef: ChangeDetectorRef,
-    private rowRef: ElementRef, private ngZone: NgZone) {
+  constructor(@Inject(DATA_TABLE) public dt: any, private changeDetectorRef: ChangeDetectorRef,
+              private rowRef: ElementRef, private ngZone: NgZone) {
   }
 
   ngOnInit(): void {
     this.ngZone.runOutsideAngular(() => {
       this.rowRef.nativeElement.addEventListener(
-          'click',
-          this.onRowClick.bind(this)
+        'click',
+        this.onRowClick.bind(this)
       );
       this.rowRef.nativeElement.addEventListener(
         'dblclick',
         this.onRowDBClick.bind(this)
       );
-      this.rowRef.nativeElement.addEventListener(
-        'mouseenter',
-        this.onRowMouseEnter.bind(this)
-      );
-      this.rowRef.nativeElement.addEventListener(
-        'mouseleave',
-        this.onRowMouseLeave.bind(this)
-      );
+      if (this.generalRowHoveredData) {
+        this.rowRef.nativeElement.addEventListener(
+          'mouseenter',
+          this.onRowMouseEnter.bind(this)
+        );
+        this.rowRef.nativeElement.addEventListener(
+          'mouseleave',
+          this.onRowMouseLeave.bind(this)
+        );
+      }
     });
   }
 
@@ -65,7 +83,6 @@ export class DataTableRowComponent implements OnInit {
   }
 
   onRowClick($event) {
-    // $event.stopPropagation();
     this.clickCount++;
     if (this.clickCount === 1) {
       this.timeoutId = setTimeout(() => {
@@ -79,40 +96,40 @@ export class DataTableRowComponent implements OnInit {
   }
 
   onRowDBClick($event) {
-    // $event.stopPropagation();
     this.dt.onRowDBClick({ rowIndex: this.rowIndex, nestedIndex: this.nestedIndex, rowItem: this.rowItem, rowComponent: this });
   }
 
   onRowMouseEnter($event) {
-    if (!this.rowHovered) {
-      this.ngZone.run(() => {
-        this.rowHovered = true;
-      });
-    }
+    this.ngZone.run(() => {
+      this.rowItem.$hovered = true;
+    });
   }
 
   onRowMouseLeave($event) {
     this.ngZone.run(() => {
-      this.rowHovered = false;
+      this.rowItem.$hovered = false;
     });
   }
 
   onRowCheckChange($event, rowIndex, nestedIndex, rowItem) {
     rowItem.$checked = $event;
     rowItem.$halfChecked = false;
-    this.dt.onRowCheckChange({ rowItem, rowIndex, nestedIndex, checked: $event });
+    this.dt.setRowCheckStatus({ rowItem, rowIndex, nestedIndex, checked: $event });
   }
 
   toggle() {
-    if (this.rowItem.expandConfig) {
-      this.rowItem.expandConfig.expand = !this.rowItem.expandConfig.expand;
-      this.detailChange.emit({ state: this.rowItem.expandConfig.expand, index: this.rowIndex });
-      this.dt.onDetailToggle({ state: this.rowItem.expandConfig.expand, index: this.rowIndex });
+    if (this.rowItem['$isDetailOpen'] === undefined) {
+      this.rowItem['$isDetailOpen'] = !!this.rowItem.$expandConfig?.expand;
     }
+    this.rowItem['$isDetailOpen'] = !this.rowItem['$isDetailOpen'];
+    if (this.rowItem.$expandConfig) {
+      this.rowItem.$expandConfig.expand = !this.rowItem.$expandConfig.expand;
+    }
+    this.detailChange.emit({ state: this.rowItem['$isDetailOpen'], index: this.rowIndex });
+    this.dt.onDetailToggle({ state: this.rowItem['$isDetailOpen'], index: this.rowIndex });
   }
 
   trackByFn(index, item) {
     return index;
   }
-
 }

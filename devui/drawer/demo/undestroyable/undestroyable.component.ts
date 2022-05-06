@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
-import { DrawerService, IDrawerOpenResult } from 'ng-devui';
+import { DOCUMENT } from '@angular/common';
+import { Component, Inject } from '@angular/core';
+import { DrawerService, IDrawerOpenResult } from 'ng-devui/drawer';
 import { DrawerContentComponent } from '../drawerContent/drawer-content.component';
 
 @Component({
@@ -10,8 +11,8 @@ export class UndestroyableComponent {
   results: IDrawerOpenResult;
   doms: any = [];
 
-  constructor(private drawerService: DrawerService) {
-    this.doms.push(document.getElementById('app-container'));
+  constructor(private drawerService: DrawerService, @Inject(DOCUMENT) private doc: any) {
+    this.doms.push(this.doc.getElementById('app-container'));
   }
 
   destroy() {
@@ -25,9 +26,10 @@ export class UndestroyableComponent {
     } else {
       this.results = this.drawerService.open({
         drawerContentComponent: DrawerContentComponent,
-        width: '50%',
+        width: '500px',
         clickDoms: this.doms,
         destroyOnHide: false,
+        position: 'left',
         onClose: () => {
           console.log('on drawer closed');
         },
@@ -41,8 +43,14 @@ export class UndestroyableComponent {
             'This is item 4',
             'This is item 5',
           ],
-          onBtnClick: (event) => {
+          close: (event) => {
             this.results.drawerInstance.hide();
+          },
+          fullScreen: (event) => {
+            this.results.drawerInstance.toggleFullScreen();
+          },
+          changeWidth: (event) => {
+            this.results.drawerInstance.setWidth(event + 'px');
           }
         }
       });

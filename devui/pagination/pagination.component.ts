@@ -1,3 +1,4 @@
+import { ConnectedPosition } from '@angular/cdk/overlay';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
@@ -8,31 +9,34 @@ import {
   Input,
   OnChanges,
   OnDestroy,
+  OnInit,
   Output,
   SimpleChanges,
   ViewChild
 } from '@angular/core';
-import { DevUIConfig } from 'ng-devui/devui.config';
-import {fromEvent, Subscription} from 'rxjs';
-
+import { I18nInterface, I18nService } from 'ng-devui/i18n';
+import { AppendToBodyDirection } from 'ng-devui/utils';
+import { fromEvent, Subscription } from 'rxjs';
 @Component({
   selector: 'd-pagination',
   styleUrls: ['./pagination.component.scss'],
   templateUrl: './pagination.component.html',
   exportAs: 'pagination',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  preserveWhitespaces: false,
 })
-export class PaginationComponent implements OnChanges, AfterViewInit, OnDestroy {
-  static EFFECT_PAGE_RANGE_KEYS = ['total', 'pageSize', 'pageIndex', 'maxItems'];
+export class PaginationComponent implements OnChanges, AfterViewInit, OnDestroy, OnInit {
+  static EFFECT_PAGE_RANGE_KEYS = ['total', 'pageSize', 'pageIndex', 'maxItems', 'pageSizeOptions'];
 
   /**
    * 【可选】每页显示最大条目数量，默认10条
    */
-  @Input() pageSize: number;
+  @Input() pageSize = 10;
   /**
    * 【可选】用于选择更改分页每页最大条目数量的下拉框的数据源，默认为`[5, 10, 20, 50]`
    */
-  @Input() pageSizeOptions: number[];
+  @Input() pageSizeOptions: number[] = [5, 10, 20, 50];
+  @Input() pageSizeDirection: Array<AppendToBodyDirection | ConnectedPosition> = ['centerDown', 'centerUp'];
   /**
    * 【可选】初始化页码
    */
@@ -48,7 +52,7 @@ export class PaginationComponent implements OnChanges, AfterViewInit, OnDestroy 
   /**
    * 分页最多显示几个按钮，默认10个
    */
-  @Input() maxItems: number;
+  @Input() maxItems = 10;
   /**
    * 【可选】前一页按钮文字，默认为左箭头图标
    */
@@ -60,7 +64,7 @@ export class PaginationComponent implements OnChanges, AfterViewInit, OnDestroy 
   /**
    * 【可选】分页组件尺寸
    */
-  @Input() size: '' | 'sm' | 'lg';
+  @Input() size: '' | 'sm' | 'lg' = '';
   /**
    * 【可选】是否显示分页输入跳转
    */
@@ -73,21 +77,27 @@ export class PaginationComponent implements OnChanges, AfterViewInit, OnDestroy 
    * 【可选】是否显示总条目
    */
   @Input() canViewTotal: boolean;
+  /**
+   * @deprecated
+   */
   @Input() cssClass: string;
   // 是否显示跳转按钮，默认不显示
   @Input() showJumpButton = false;
   // 翻过了页的需求要显示当前真实页面
   @Input() showTruePageIndex = false;
+  /**
+   * @deprecated
+   */
   @Input() id;
   showPages = [];
   totalPage = 1;
   _total = 0;
   jumpPage = null;
 
-
   @Input() totalItemText: string;
   @Input() goToText: string;
   /**
+   * @deprecated
    * 下拉菜单默认方向
    */
   @Input() selectDirection: 'auto' | 'up' | 'down' = 'auto';
@@ -98,22 +108,35 @@ export class PaginationComponent implements OnChanges, AfterViewInit, OnDestroy 
   @Input() lite = false;
   @Input() showPageSelector = true;
   @Input() haveConfigMenu = false;
-  litePaginatorIndex: { value: number, label: string } | null;
+  @Input() autoFixPageIndex = true;
+  /**
+   * 是否自动隐藏
+   */
+  @Input() autoHide = false;
+  minPageSizeOptions: number;
+  litePaginatorIndex: { value: number; label: string } | null;
   litePaginatorOptions: any[] = [];
   private litePaginatorOptionsLengthCache = 0;
   showConfig = false;
   @ViewChild('litePaginator') litePaginator: ElementRef;
   private configButtonLoseFocusHandler: Subscription | null = null;
   private loseFocusListener: any = null;
+  i18nText: I18nInterface['pagination'];
+  i18nLocale: I18nInterface['locale'];
+  i18nSubscription: Subscription;
+  constructor(private ref: ChangeDetectorRef, private i18n: I18nService) {  }
 
-  constructor(private devUIConfig: DevUIConfig,  private ref: ChangeDetectorRef) {
-    this.pageSize = this.devUIConfig['paginationCN'].pageSize;
-    this.pageSizeOptions = this.devUIConfig['paginationCN'].pageSizeOptions;
-    this.maxItems = this.devUIConfig['paginationCN'].maxItems;
-    this.size = <any>this.devUIConfig['paginationCN'].size;
-    this.totalItemText = this.devUIConfig['paginationCN'].totalItemText;
-    this.goToText = this.devUIConfig['paginationCN'].goToText;
-    this.constructLitePaginatorOptions();
+  ngOnInit(): void {
+    this.i18nText = this.i18n.getI18nText().pagination;
+    this.i18nLocale = this.i18n.getI18nText().locale;
+    this.i18nSubscription = this.i18n.langChange().subscribe((data) => {
+      this.i18nText = data.pagination;
+      this.i18nLocale = data.locale;
+      this.ref.markForCheck();
+    });
+    if (this.lite && this.showPageSelector) {
+      this.constructLitePaginatorOptions();
+    }
   }
 
   @Input() set total(total: any) {
@@ -187,19 +210,18 @@ export class PaginationComponent implements OnChanges, AfterViewInit, OnDestroy 
 
   onPageIndexChange(pageIndex: number) {
     if (this.pageIndex !== pageIndex) {
-      this.litePaginatorIndex = Object.assign({}, {
-        value: this.pageIndex,
-        label: `${this.pageIndex}/${this.totalPage}`
-      });
+      if (this.lite) {
+        this.litePaginatorIndex = { value: this.pageIndex,
+          label: `${this.pageIndex}/${this.totalPage}`};
+      }
       this.pageIndexChange.emit(pageIndex);
-
     }
   }
 
   onPageSizeChange(size) {
     if (this.pageSize !== size) {
       this.pageSizeChange.emit(size);
-      if (Math.ceil(this.total / size) < this.totalPage) {
+      if (this.autoFixPageIndex && Math.ceil(this.total / size) < this.totalPage) {
         this.totalPage = Math.ceil(this.total / size);
         this.onPageIndexChange(this.totalPage <= this.pageIndex ? this.totalPage : this.pageIndex);
       }
@@ -222,13 +244,16 @@ export class PaginationComponent implements OnChanges, AfterViewInit, OnDestroy 
   ngOnChanges(changes: SimpleChanges): void {
     const shouldUpdateRanges = PaginationComponent.EFFECT_PAGE_RANGE_KEYS.some(key => !!changes[key]);
     if (shouldUpdateRanges) {
+      this.minPageSizeOptions = Math.min(...this.pageSizeOptions);
       this.totalPage = this.getTotalPage();
       if (!this.showTruePageIndex) {
         this.pageIndex = Math.max(Math.min(this.pageIndex, this.totalPage), 1);
       }
       this.jumpPage = this.pageIndex;
       this.updateShowPageRange();
-      this.constructLitePaginatorOptions();
+      if (this.lite && this.showPageSelector) {
+        this.constructLitePaginatorOptions();
+      }
       this.adjustPaginatorWidth();
     }
   }
@@ -274,17 +299,15 @@ export class PaginationComponent implements OnChanges, AfterViewInit, OnDestroy 
   private constructLitePaginatorOptions(): void {
     if (this.litePaginatorOptions.length === 0 ||
       this.litePaginatorOptions.length !== this.litePaginatorOptionsLengthCache) {
-      this.litePaginatorOptions = Array.from({length: this.totalPage}).map((v, index: number) => {
+      this.litePaginatorOptions = Array.from({ length: this.totalPage }).map((v, index: number) => {
         return {
           label: `${index + 1}/${this.totalPage}`,
           value: index + 1
         };
       });
     }
-    this.litePaginatorIndex = Object.assign({}, {
-      value: this.pageIndex,
-      label: `${this.pageIndex}/${this.totalPage}`
-    });
+    this.litePaginatorIndex = { value: this.pageIndex,
+      label: `${this.pageIndex}/${this.totalPage}`};
   }
 
   private adjustPaginatorWidth() {
@@ -324,6 +347,10 @@ export class PaginationComponent implements OnChanges, AfterViewInit, OnDestroy 
 
   ngOnDestroy(): void {
     this.unsubscribeLoseFocusHandler();
+    if (this.i18nSubscription) {
+      this.i18nSubscription.unsubscribe();
+
+    }
   }
 
   private subscribeLoseFocusHandler() {

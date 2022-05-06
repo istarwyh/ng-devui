@@ -1,15 +1,18 @@
+@import '../theme/color';
+@import '../core/font';
+
 body {
   margin: 0;
   padding: 0;
-  color: $text-color;
-  font-size: $font-size-base;
+  color: $devui-text;
+  font-size: $devui-font-size;
   font-family: $font-family;
-  font-variant: $font-variant-base;
-  line-height: $line-height-base;
-  background-color: $body-background;
+  line-height: $devui-line-height-base;
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -22,11 +25,15 @@ button {
   -webkit-appearance: button;
 }
 
-button, [type="button"], [type="reset"], [type="submit"] {
+button,
+[type='button'],
+[type='reset'],
+[type='submit'] {
   -webkit-appearance: inherit;
 }
 
-ul, ol {
+ul,
+ol {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -37,12 +44,63 @@ p {
   padding: 0;
 }
 
-a, a:hover, a:focus, a:active, a:visited {
+a,
+a:hover,
+a:focus,
+a:active,
+a:visited {
   text-decoration: none;
 }
 
-:-ms-input-placeholder,
-::-moz-placeholder,
-::-webkit-input-placeholder{
-    color: $dark3;
+:-ms-input-placeholder {
+  color: $devui-placeholder;
+}
+
+::-moz-placeholder {
+  color: $devui-placeholder;
+}
+
+::-webkit-input-placeholder {
+  color: $devui-placeholder;
+}
+
+//******************滚动条*************************/
+.devui-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.devui-scrollbar::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+.devui-scrollbar::-webkit-scrollbar-thumb {
+  border-radius: 8px;
+  background-color: $devui-line;
+}
+
+.devui-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: $devui-placeholder; // TODO: Color-Question
+}
+
+body > * ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+body > * ::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+body > * ::-webkit-scrollbar-thumb {
+  border-radius: 8px;
+  background-color: $devui-line;
+}
+
+body > * ::-webkit-scrollbar-thumb:hover {
+  background-color: $devui-placeholder; // TODO: Color-Question
+}
+
+body > * ::-webkit-scrollbar-corner {
+  background-color: transparent;
 }

@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { ICheckboxInput, ITreeItem, OperableTreeComponent, TreeNode } from 'ng-devui';
+import { ITreeItem, OperableTreeComponent, TreeNode } from 'ng-devui/tree';
 
 @Component({
   selector: 'd-checkable',
@@ -7,57 +7,56 @@ import { ICheckboxInput, ITreeItem, OperableTreeComponent, TreeNode } from 'ng-d
 })
 export class CheckableComponent implements OnInit {
 
-  @ViewChild('operableTree1') operableTreeComponent: OperableTreeComponent;
+  @ViewChild('operableTree1', { static: true }) operableTreeComponent: OperableTreeComponent;
   currentSelectedNode;
   checkNote;
 
-  checkboxInput: ICheckboxInput; // = { color: '#5170ff' };
+  // checkboxInput: ICheckboxInput = { color: '#5170ff' };
   data3 = [{
-    'title': '首页'
+    'title': 'parent node 1'
   }, {
-    'title': '资源',
-    'children': [{
-      'title': '拓扑',
-      'children': [{
-        'title': '拓扑管理'
-      }, {
-        'title': 'IP拓扑管理'
-      }]
-    }, {
-      'title': '监控工具',
-      'children': [{
-        'title': '大屏监控'
-      }, {
-        'title': '下级网管监控'
-      }]
-    }]
-  }, {
-    'title': '维护',
+    'title': 'parent node 2',
     'open': true,
     'children': [{
-      'title': '前端维护',
+      'title': 'leaf node 2-1',
+      'children': [{
+        'title': 'leaf node 2-1-1'
+      }, {
+        'title': 'leaf node 2-1-2'
+      }]
     }, {
-      'title': '后台维护',
-      'disabled': true,
-      'isChecked': true
-    },
-    {
-      'title': '数据库维护',
-      'disabled': true,
+      'title': 'leaf node 2-2',
+      'open': true,
+      'children': [{
+        'title': 'leaf node 2-2-1',
+        'disabled': true,
+        'isChecked': true
+      }, {
+        'title': 'leaf node 2-2-2',
+        'disableSelect': true
+      }]
     }]
   }, {
-    'title': '报表',
+    'title': 'parent node 3',
+    'disableToggle': true,
     'children': [{
-      'title': '报表数据'
+      'title': 'leaf node 3-1',
     }, {
-      'title': '报表统计'
+      'title': 'leaf node 3-2',
+    }],
+  }, {
+    'title': 'parent node 4',
+    'children': [{
+      'title': 'leaf node 4-1'
+    }, {
+      'title': 'leaf node 4-2'
     }]
   }, {
-    'title': '管理',
+    'title': 'parent node 5',
     'children': [{
-      'title': '向导'
+      'title': 'leaf node 5-1'
     }, {
-      'title': '配置'
+      'title': 'leaf node 5-2'
     }]
   }];
 
@@ -92,4 +91,18 @@ export class CheckableComponent implements OnInit {
       .map((item: any) => ({ id: item.id, data: { title: item.data.title, isChecked: item.data.isChecked } }));
   }
 
+  onOperableNodeDblClicked(node) {
+    console.log(node);
+  }
+
+  onOperableNodeRightClicked(event) {
+    console.log(event.node, event.event);
+  }
+  currentNodeChecked($event) {
+    console.log('current node', $event);
+  }
+  clearCheckedNodes() {
+    this.operableTreeComponent.treeFactory.checkAllNodes(false);
+    this.getCheckedNote(this.operableTreeComponent);
+  }
 }

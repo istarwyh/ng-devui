@@ -1,0 +1,92 @@
+import { Component, ViewChild } from '@angular/core';
+import { OperableTreeComponent, TreeNode } from 'ng-devui/tree';
+@Component({
+  selector: 'd-search-filter',
+  templateUrl: './search-filter.component.html',
+  styleUrls: ['./search-filter.component.scss']
+})
+export class SearchFilterComponent {
+  @ViewChild('dOperableTreeComponent', { static: true }) dOperableTreeComponent: OperableTreeComponent;
+  currentSelectedNode;
+  data2 = [{
+    'title': 'parent node 1',
+    'customSearchValue': 'a',
+  }, {
+    'title': 'parent node 2',
+    'customSearchValue': 'b',
+    'children': [{
+      'title': 'child node 2-1',
+      'customSearchValue': 'c',
+      'children': [{
+        'title': 'child node 2-1-1',
+        'customSearchValue': 'd',
+      }, {
+        'title': 'child node 2-1-2',
+        'customSearchValue': 'e',
+      }]
+    }, {
+      'title': 'child node 2-2',
+      'customSearchValue': 'f',
+      'children': [{
+        'title': 'child node 2-2-1',
+        'customSearchValue': 'g',
+      }, {
+        'title': 'child node 2-2-2',
+        'customSearchValue': 'h',
+      }]
+    }]
+  }, {
+    'title': 'parent node 3',
+    'customSearchValue': 'i',
+    'children': [{
+      'title': 'child node 3-1',
+      'customSearchValue': 'j',
+    }, {
+      'title': 'child node 3-2',
+      'customSearchValue': 'k',
+    }],
+  }, {
+    'title': 'parent node 4',
+    'customSearchValue': 'l',
+    'children': [{
+      'title': 'child node 4-1',
+      'customSearchValue': 'm',
+    }, {
+      'title': 'child node 4-2',
+      'customSearchValue': 'n',
+    }]
+  }, {
+    'title': 'parent node 5',
+    'customSearchValue': 'o',
+    'children': [{
+      'title': 'child node 5-1',
+      'customSearchValue': 'p',
+    }, {
+      'title': 'child node 5-2',
+      'customSearchValue': 'q',
+    }]
+  }];
+
+  onOperableNodeDeleted(treeNode: TreeNode) {
+    console.log('deleted: ', treeNode);
+  }
+
+  onOperableNodeSelected(treeNode: TreeNode) {
+    console.log('selected: ', treeNode);
+    this.currentSelectedNode = treeNode;
+  }
+
+  onKeyUp(event) {
+    this.dOperableTreeComponent.operableTree.treeFactory.searchTree(event);
+  }
+  onKeyUp2(event) {
+    this.dOperableTreeComponent.operableTree.treeFactory.searchTree(event, true);
+  }
+  onKeyUp3(event) {
+    this.dOperableTreeComponent.operableTree.treeFactory.searchTree(event, true, 'customSearchValue');
+  }
+  onKeyUp4(event) {
+    const regex = new RegExp('^' + event + '[\s\S]*');
+    this.dOperableTreeComponent.operableTree.treeFactory.searchTree(event, true, undefined, regex);
+  }
+}

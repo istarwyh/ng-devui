@@ -1,0 +1,32 @@
+@import '~ng-devui/styles-var/devui-var.scss';
+
+.card-icon {
+  cursor: pointer;
+  font-size: $devui-font-size-icon;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.card-icon + span {
+  vertical-align: middle;
+}
+
+.card-block {
+  margin-right: 16px;
+}
+
+d-card {
+  cursor: pointer;
+  transition:
+    box-shadow $devui-animation-duration-slow $devui-animation-ease-in-out-smooth,
+    transform $devui-animation-duration-slow $devui-animation-ease-in-out-smooth;
+
+  &:hover {
+    box-shadow: $devui-shadow-length-hover $devui-light-shadow;
+    transform: translateY(-5px);
+  }
+}
+
+.card-container {
+  width: 350px;
+}

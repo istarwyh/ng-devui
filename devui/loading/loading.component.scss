@@ -1,28 +1,52 @@
 @import '../style/theme/color';
-.loading-wrapper {
+@import '../style/theme/corner';
+@import '../style/core/_font';
+@import '../style/core/z-index';
+
+.devui-loading-wrapper {
   display: flex;
   flex: 1 1 auto;
 }
+
+.devui-loading-wrapper.devui-loading-full {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: $devui-z-index-full-page-overlay;
+}
+
 .devui-spinner-wrapper {
   position: absolute;
-  z-index: 1001;
+  z-index: $devui-z-index-full-page-overlay;
+  width: max-content;
+  max-width: 100%;
+  display: flex;
 }
-.fix-loading-position{
+
+.devui-message-wrapper {
+  background: $devui-base-bg;
+  border-radius: $devui-border-radius-card;
+}
+
+.devui-fix-loading-position {
   transform: translate(-50%, -50%);
 }
+
 .devui-busy-default-sign {
   position: relative;
-  display: inline-block;
-  z-index: 1001;
-  padding: 12px 14px;
-  color: $dark1;
+  display: inline-flex;
+  z-index: $devui-z-index-full-page-overlay;
+  padding: 12px 12px;
+  color: $devui-text;
 }
 
 .devui-busy-default-text {
   display: inline-block;
-  margin-left: 6px;
+  margin-left: 8px;
   max-width: 400px;
-  font-size: 14px;
+  font-size: $devui-font-size;
   text-align: left;
 }
 
@@ -32,6 +56,7 @@
   width: 15px;
   height: 15px;
   animation: devui-busy-spinner-anim 1s linear infinite;
+
   div {
     position: absolute;
     left: 44.5%;
@@ -40,37 +65,42 @@
     height: 6px;
     border-radius: 50%;
   }
-  .bar1{
+
+  .devui-loading-bar1 {
     top: 0;
     left: 0;
-    background:$status-blue;
+    background: $devui-brand;
   }
-  .bar2{
+
+  .devui-loading-bar2 {
     top: 0;
     left: 9px;
-    background:$focus4;
+    background: $devui-brand-foil;
   }
-  .bar3{
+
+  .devui-loading-bar3 {
     top: 9px;
     left: 0;
-    background:$focus4;
-
+    background: $devui-brand-foil;
   }
-  .bar4{
+
+  .devui-loading-bar4 {
     top: 9px;
     left: 9px;
-    background:$status-blue;
+    background: $devui-brand;
   }
-
 }
+
 @keyframes devui-busy-spinner-anim {
   0% {
-    transform:rotate(0deg) scale(1);
+    transform: rotate(0deg) scale(1);
   }
+
   50% {
-    transform:rotate(135deg) scale(1.5);
+    transform: rotate(135deg) scale(1.5);
   }
+
   100% {
-     transform:rotate(270deg) scale(1);
+    transform: rotate(270deg) scale(1);
   }
 }

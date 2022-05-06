@@ -1,8 +1,22 @@
-import { fromEvent, Subscription  } from 'rxjs';
-import { ChangeDetectionStrategy, Component, OnInit, OnDestroy, Input, Output, forwardRef, AfterViewInit,
-   EventEmitter, ViewChild, ElementRef, Renderer2 } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  EventEmitter,
+  forwardRef,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+  Renderer2,
+  ViewChild
+} from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { map , filter, debounceTime } from 'rxjs/operators';
+import { I18nInterface, I18nService } from 'ng-devui/i18n';
+import { fromEvent, Subject, Subscription } from 'rxjs';
+import { debounceTime, filter, map, takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'd-search',
@@ -10,13 +24,19 @@ import { map , filter, debounceTime } from 'rxjs/operators';
   styleUrls: ['./search.component.scss'],
   exportAs: 'search',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [{
-    provide: NG_VALUE_ACCESSOR,
-    useExisting: forwardRef(() => SearchComponent),
-    multi: true
-  }]
+  preserveWhitespaces: false,
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => SearchComponent),
+      multi: true,
+    },
+  ],
 })
 export class SearchComponent implements ControlValueAccessor, OnInit, OnDestroy, AfterViewInit {
+  constructor(private renderer: Renderer2, private i18n: I18nService, private cdr: ChangeDetectorRef, private el: ElementRef) {
+  }
+
   /**
    * 【可选】下拉选框尺寸
    */
@@ -24,22 +44,29 @@ export class SearchComponent implements ControlValueAccessor, OnInit, OnDestroy,
   /**
    * 【可选】下拉默认显示文字
    */
-  @Input() placeholder = 'Please Input keywords';
+  @Input() placeholder: string;
   @Input() maxLength = Number.MAX_SAFE_INTEGER;
   @Input() isKeyupSearch = false;
   @Input() delay = 300;
+  @Input() disabled = false;
+  @Input() cssClass: string;
+  @Input() iconPosition = 'right';
+  @Input() noBorder = false;
+  @Input() autoFocus = false;
   @Output() searchFn = new EventEmitter<string>();
-  @ViewChild('filterInput') filterInputElement: ElementRef;
+  @ViewChild('filterInput', { static: true }) filterInputElement: ElementRef;
   @ViewChild('line') lineElement: ElementRef;
   @ViewChild('clearIcon') clearIconElement: ElementRef;
-  private subscription: Subscription;
+  i18nCommonText: I18nInterface['common'];
+  i18nSubscription: Subscription;
+  clearIconExit = false;
+  width: number;
+  destroy$ = new Subject();
   private onChange = (_: any) => null;
   private onTouch = () => null;
 
-  constructor(private renderer: Renderer2) {
-  }
-
   ngOnInit() {
+    this.setI18nText();
   }
 
   registerOnChange(fn: any): void {
@@ -55,10 +82,20 @@ export class SearchComponent implements ControlValueAccessor, OnInit, OnDestroy,
     this.renderClearIcon();
   }
 
+  setI18nText() {
+    this.i18nCommonText = this.i18n.getI18nText().common;
+    this.i18nSubscription = this.i18n.langChange()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((data) => {
+        this.i18nCommonText = data.common;
+        this.cdr.markForCheck();
+      });
+  }
+
   clearText() {
     this.renderer.setProperty(this.filterInputElement.nativeElement, 'value', '');
-    if ( this.onChange) {
-        this.onChange('');
+    if (this.onChange) {
+      this.onChange('');
     }
     this.searchFn.emit('');
     this.filterInputElement.nativeElement.focus();
@@ -70,22 +107,36 @@ export class SearchComponent implements ControlValueAccessor, OnInit, OnDestroy,
     // 此函数不能删除，需要给filterInput.value赋值，从而控制clear的显隐。因为registerFilterChange对clear的显隐控制不起作用。
   }
 
-  keyupEnter(term) {
-    this.searchFn.emit(term);
+  inputBlur() {
+    this.onTouch();
+  }
+
+  clickSearch(term) {
+    if (!this.disabled) {
+      this.searchFn.emit(term);
+    }
   }
 
   registerFilterChange() {
-    this.subscription = fromEvent(this.filterInputElement.nativeElement, 'input')
-     .pipe(
-      map((e: any) => e.target.value),
-      filter(term => true),
-      debounceTime(this.delay)
-     ).subscribe(value => {
+    fromEvent(this.filterInputElement.nativeElement, 'input')
+      .pipe(
+        takeUntil(this.destroy$),
+        map((e: any) => e.target.value),
+        debounceTime(this.delay))
+      .subscribe((value) => {
         this.onChange(value);
         if (this.isKeyupSearch) {
           this.searchFn.emit(value);
         }
       });
+
+    fromEvent(this.filterInputElement.nativeElement, 'keydown').pipe(
+      takeUntil(this.destroy$),
+      filter((keyEvent: KeyboardEvent) => keyEvent.key === 'Enter'),
+      debounceTime(this.delay),
+    ).subscribe((keyEvent) => {
+      this.searchFn.emit(this.filterInputElement.nativeElement.value);
+    });
   }
 
   ngAfterViewInit() {
@@ -94,18 +145,23 @@ export class SearchComponent implements ControlValueAccessor, OnInit, OnDestroy,
   }
 
   renderClearIcon() {
-    if (this.filterInputElement.nativeElement.value && this.lineElement && this.clearIconElement) {
-      this.renderer.setStyle(this.lineElement.nativeElement, 'display', 'block');
-      this.renderer.setStyle(this.clearIconElement.nativeElement, 'display', 'block');
-    } else if (this.lineElement && this.clearIconElement) {
-      this.renderer.setStyle(this.lineElement.nativeElement, 'display', 'none');
-      this.renderer.setStyle(this.clearIconElement.nativeElement, 'display', 'none');
+    if (this.iconPosition === 'right') {
+      if (this.filterInputElement.nativeElement.value && this.lineElement && this.clearIconElement) {
+        this.clearIconExit = true;
+      } else if (this.lineElement && this.clearIconElement) {
+        this.clearIconExit = false;
+      }
+    } else {
+      if (this.filterInputElement.nativeElement.value && this.clearIconElement) {
+        this.clearIconExit = true;
+      } else if (this.clearIconElement) {
+        this.clearIconExit = false;
+      }
     }
+    this.cdr.markForCheck();
   }
 
   ngOnDestroy() {
-    // tslint:disable-next-line:no-unused-expression
-    this.subscription && this.subscription.unsubscribe();
+    this.destroy$.next(true);
   }
-
 }

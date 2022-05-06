@@ -8,9 +8,11 @@ import {
   OnChanges,
   Output,
   SimpleChanges,
-  TemplateRef,
+  TemplateRef
 } from '@angular/core';
-import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { DevConfigService, WithConfig } from 'ng-devui/utils/globalConfig';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'd-checkbox',
@@ -21,9 +23,10 @@ import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
     {
       provide: NG_VALUE_ACCESSOR,
       useExisting: forwardRef(() => CheckBoxComponent),
-      multi: true
-    }
-  ]
+      multi: true,
+    },
+  ],
+  preserveWhitespaces: false,
 })
 export class CheckBoxComponent implements ControlValueAccessor, OnChanges {
   static ID_SEED = 0;
@@ -33,16 +36,22 @@ export class CheckBoxComponent implements ControlValueAccessor, OnChanges {
   @Input() color;
   @Input() disabled = false;
   @Input() isShowTitle = true;
+  @Input() title;
   @Input() labelTemplate: TemplateRef<any>;
   @Input() halfchecked = false;
-  @Output() change: EventEmitter<boolean> = new EventEmitter();
+  @Input() @WithConfig() showAnimation = true;
+  @Input() beforeChange: (value) => boolean | Promise<boolean> | Observable<boolean>;
+  @Output() change: EventEmitter<boolean> = new EventEmitter<boolean>();
   public animationUnlocked = false;
   public id: number;
   public checked: boolean;
   private onChange = (_: any) => null;
   private onTouch = () => null;
 
-  constructor(private changeDetectorRef: ChangeDetectorRef) {
+  constructor(
+    private changeDetectorRef: ChangeDetectorRef,
+    private devConfigService: DevConfigService
+  ) {
     this.id = CheckBoxComponent.ID_SEED++;
   }
 
@@ -63,13 +72,15 @@ export class CheckBoxComponent implements ControlValueAccessor, OnChanges {
   }
 
   toggle($event) {
-    if (this.disabled) {
-      return;
-    }
-    this.checked = !this.checked;
-    this.onChange(this.checked);
-    this.change.next(this.checked);
-    this.onTouch();
+    this.canChange().then((val) => {
+      if (this.disabled || !val) {
+        return;
+      }
+      this.checked = !this.checked;
+      this.onChange(this.checked);
+      this.change.next(this.checked);
+      this.onTouch();
+    });
   }
 
   private unlockAnimation() {
@@ -80,8 +91,27 @@ export class CheckBoxComponent implements ControlValueAccessor, OnChanges {
     }
   }
 
+  canChange() {
+    let changeResult = Promise.resolve(true);
+
+    if (this.beforeChange) {
+      const result: any = this.beforeChange(this.label);
+      if (typeof result !== 'undefined') {
+        if (result.then) {
+          changeResult = result;
+        } else if (result.subscribe) {
+          changeResult = (result as Observable<boolean>).toPromise();
+        } else {
+          changeResult = Promise.resolve(result);
+        }
+      }
+    }
+
+    return changeResult;
+  }
+
   ngOnChanges(changes: SimpleChanges) {
-    if (changes.hasOwnProperty('halfchecked')) {
+    if (Object.prototype.hasOwnProperty.call(changes, 'halfchecked')) {
       this.unlockAnimation();
     }
   }

@@ -1,6 +1,22 @@
+<h4>Normal</h4>
 <d-tags-input
-  (click)="$event.stopPropagation()"
-  id="issue-tags"
+  [(ngModel)]="tagList"
+  [displayProperty]="taskTagConfig.displayProperty"
+  [placeholder]="taskTagConfig.placeholder"
+  [minLength]="taskTagConfig.minLength"
+  [maxLength]="taskTagConfig.maxLength"
+  [maxTags]="taskTagConfig.maxTags"
+  [suggestionList]="suggestionList"
+  [spellcheck]="taskTagConfig.spellcheck"
+  [caseSensitivity]="taskTagConfig.caseSensitivity"
+  [isAddBySpace]="taskTagConfig.isAddBySpace"
+  (valueChange)="getTagValue($event)"
+  [checkBeforeAdd]="customCheck"
+>
+</d-tags-input>
+<pre style="margin: 8px 0">{{ tagList | json }}</pre>
+<h4>Disabled</h4>
+<d-tags-input
   [tags]="tagList"
   [displayProperty]="taskTagConfig.displayProperty"
   [placeholder]="taskTagConfig.placeholder"
@@ -10,6 +26,6 @@
   [suggestionList]="suggestionList"
   (valueChange)="getTagValue($event)"
   [checkBeforeAdd]="customCheck"
+  [disabled]="true"
 >
 </d-tags-input>
-<pre style="margin-top: 10px;">{{ tagList | json }}</pre>

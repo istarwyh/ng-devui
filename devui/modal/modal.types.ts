@@ -1,14 +1,13 @@
+import { ComponentFactoryResolver, Injector, TemplateRef, Type } from '@angular/core';
 import { Observable } from 'rxjs';
-import {
-  Type,
-  ComponentFactoryResolver,
-  Injector,
-} from '@angular/core';
 
 export interface IModalOptions {
   id?: string;
-  component: Type<any>;
+  zIndex?: number;
+  backDropZIndex?: number;
+  component?: Type<any>;
   width?: string;
+  showAnimation?: boolean;
   showAnimate?: boolean;
   data?: any;
   handler?: Function;
@@ -17,30 +16,47 @@ export interface IModalOptions {
   injector?: Injector;
   onClose?: Function;
   beforeHidden?: () => boolean | Promise<boolean> | Observable<boolean>;
+  placement?: 'center' | 'top' | 'bottom';
+  offsetX?: string;
+  offsetY?: string;
+  bodyScrollable?: boolean;
+  contentTemplate?: TemplateRef<any>;
+  escapable?: boolean;
 }
 
 export interface IDialogOptions {
   id?: string;
   title: string;
-  content: string | Type<any>;
+  zIndex?: number;
+  backDropZIndex?: number;
+  content?: string | Type<any>;
   html?: boolean;
   buttons: Array<{
-    id?: string,
-    cssClass?: string,
-    text: string,
-    handler: ($event: Event) => void,
-    btnwidth?: string,
-    autofocus?: boolean
+    id?: string;
+    cssClass?: string;
+    text: string;
+    handler: ($event: Event) => void;
+    btnwidth?: string;
+    autofocus?: boolean;
+    disabled?: boolean;
   }>;
   width?: string;
   backdropCloseable?: boolean;
   maxHeight?: string;
+  showAnimation?: boolean;
   showAnimate?: boolean;
   data?: any;
   componentFactoryResolver?: ComponentFactoryResolver;
   injector?: Injector;
   onClose?: Function;
   beforeHidden?: () => boolean | Promise<boolean> | Observable<boolean>;
-  dialogtype?: string ;
+  dialogtype?: string;
   draggable?: boolean;
+  showCloseBtn?: boolean;
+  placement?: 'center' | 'top' | 'bottom';
+  offsetX?: string;
+  offsetY?: string;
+  bodyScrollable?: boolean;
+  contentTemplate?: TemplateRef<any>;
+  escapable?: boolean;
 }

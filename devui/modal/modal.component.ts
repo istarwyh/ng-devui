@@ -1,8 +1,8 @@
-import { animate, state, style, transition, trigger } from '@angular/animations';
-import { Component, ElementRef, HostBinding, Input, OnInit, Renderer2, ViewChild } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { Component, ElementRef, Inject, Input, OnDestroy, OnInit, Renderer2, TemplateRef, ViewChild } from '@angular/core';
+import { backdropFadeInOut, wipeInOutAnimation } from 'ng-devui/utils';
 import { isUndefined } from 'lodash-es';
-import { Observable } from 'rxjs';
-import { DocumentRef } from 'ng-devui/window-ref';
+import { fromEvent, Observable, Subscription } from 'rxjs';
 import { ModalContainerDirective } from './modal.directive';
 
 @Component({
@@ -10,52 +10,70 @@ import { ModalContainerDirective } from './modal.directive';
   templateUrl: './modal.component.html',
   styleUrls: ['./modal.component.scss'],
   animations: [
-    trigger('fadeInOut', [
-      state('void', style({ opacity: 0 })),
-      state('in', style({ opacity: 0.2 })),
-      transition('void => in', animate('200ms linear')),
-      transition('in => void', animate('200ms linear')),
-    ]),
-    trigger('flyInOut', [
-      state('void', style({ top: '-100%' })),
-      state('in', style({ top: '0' })),
-      transition('void => in', animate('200ms ease-in-out')),
-      transition('in => void', animate('200ms ease-in-out')),
-    ])
-  ]
+    backdropFadeInOut,
+    wipeInOutAnimation
+  ],
+  preserveWhitespaces: false,
 })
-export class ModalComponent implements OnInit {
+export class ModalComponent implements OnInit, OnDestroy {
+
   @Input() id: string;
-  @Input() showAnimate: boolean;
+  @Input() showAnimation = true;
+  /**
+   * @deprecated Use showAnimation to replace.
+   */
+  @Input() set showAnimate(isShowAnimate: any) {
+    this.showAnimation = isShowAnimate;
+  }
   @Input() width: string;
+  @Input() zIndex: number;
+  @Input() backDropZIndex: number;
   @Input() backdropCloseable: boolean;
   @Input() beforeHidden: () => boolean | Promise<boolean> | Observable<boolean>;
   @Input() draggable: boolean;
-
-  @ViewChild(ModalContainerDirective) modalContainerHost: ModalContainerDirective;
-  @ViewChild('dialog') dialogElement: ElementRef;
-  animateState: string = this.showAnimate ? 'void' : '';
+  @Input() placement: 'center' | 'top' | 'bottom' = 'center';
+  @Input() offsetX: string;
+  @Input() offsetY: string;
+  @Input() bodyScrollable = true; // 打开弹窗body是否可滚动
+  @Input() escapable: boolean; // 是否支持esc键关闭弹窗
+  @ViewChild(ModalContainerDirective, { static: true }) modalContainerHost: ModalContainerDirective;
+  @ViewChild('dialog', { static: true }) dialogElement: ElementRef;
+  animateState = '';
   draggableHandleEl: HTMLElement;
+  scrollTop: number;
+  scrollLeft: number;
+  documentOverFlow: boolean;
 
   mouseDwonEl: ElementRef;
   ignoreBackDropClick = false;
+  pressEscToClose: Subscription = new Subscription();
 
-  constructor(private documentRef: DocumentRef, private renderer: Renderer2) {
+  contentTemplate: TemplateRef<any>;
+  document: Document;
+
+  constructor(
+    private elementRef: ElementRef,
+    private renderer: Renderer2,
+    @Inject(DOCUMENT) private doc: any
+  ) {
     this.backdropCloseable = isUndefined(this.backdropCloseable)
       ? true
       : this.backdropCloseable;
+    this.document = this.doc;
   }
 
   ngOnInit() {
-    const handle = document.getElementById('d-modal-header');
+    if (this.escapable) {
+      this.pressEscToClose.add(fromEvent(window, 'keydown').subscribe((event) => {
+        if (event['keyCode'] === 27) {
+          this.hide();
+        }
+      }));
+    }
+
+    const handle = this.elementRef.nativeElement.querySelector('#d-modal-header');
     if (handle) {
       this.draggableHandleEl = handle;
-    }
-  }
-
-  onAnimationDone(event) {
-    if (event.toState === 'void') {
-      this.onHidden();
     }
   }
 
@@ -63,6 +81,8 @@ export class ModalComponent implements OnInit {
   onHidden() {
   }
 
+  updateButtonOptions<T>(buttonOptions: Array<T>) {
+  }
 
   canHideModel() {
     let hiddenResult = Promise.resolve(true);
@@ -86,42 +106,79 @@ export class ModalComponent implements OnInit {
   onModalClick = ($event) => {
     // 一定要document.contains($event.target)，因为$event.target可能已经不在document里了，这个时候就不能进hide了,使用document.body兼容IE
     if (this.backdropCloseable && !this.ignoreBackDropClick &&
-      (!this.dialogElement.nativeElement.contains($event.target) && document.body.contains($event.target))) {
+      (!this.dialogElement.nativeElement.contains($event.target) && this.document.body.contains($event.target))) {
       this.hide();
     }
     this.ignoreBackDropClick = false;
-  }
+  };
 
   modalMouseDown = ($event) => {
     this.mouseDwonEl = $event.target;
-  }
+  };
 
   modalMouseUp = ($event) => {
     if ($event.target !== this.mouseDwonEl) {
       this.ignoreBackDropClick = true;
     }
-  }
+  };
 
   hide() {
     this.canHideModel().then((canHide) => {
       if (!canHide) {
         return;
       }
-      this.renderer.removeClass(this.documentRef.body, 'modal-open');
-      if (!this.showAnimate) {
-        this.onHidden();
-        return;
-      }
+
       this.animateState = 'void';
     });
   }
 
-  show() {
-    this.renderer.addClass(this.documentRef.body, 'modal-open');
-    if (!this.showAnimate) {
-      return;
+  onAnimationEnd($event) {
+    if ($event.fromState !== 'void' && this.animateState === 'void') {
+      this.onHidden();
     }
-    this.animateState = 'in';
+  }
+
+  show() {
+    if (this.document.documentElement.scrollHeight > this.document.documentElement.clientHeight) {
+      this.documentOverFlow = true;
+      this.scrollTop = this.document.documentElement.scrollTop || this.document.body.scrollTop;
+      this.scrollLeft = this.document.documentElement.scrollLeft || this.document.body.scrollLeft;
+      this.renderer.addClass(this.document.body, 'devui-body-scrollblock');
+      this.renderer.setStyle(this.document.body, 'top', `-${this.scrollTop}px`);
+      this.renderer.setStyle(this.document.body, 'left', `-${this.scrollLeft}px`);
+    }
+    if (!this.bodyScrollable && this.documentOverFlow) {
+      this.renderer.addClass(this.document.body, 'devui-body-overflow-hidden');
+    }
+
     this.dialogElement.nativeElement.focus();
+    if (this.showAnimation) {
+      this.animateState = 'in';
+    }
+  }
+
+  resolveTransformTranslate() {
+    let autoOffsetYByPlacement;
+    switch (this.placement) {
+    case 'top':
+      autoOffsetYByPlacement = '40px';
+      break;
+    case 'bottom':
+      autoOffsetYByPlacement = '-40px';
+      break;
+    case 'center':
+    default:
+      autoOffsetYByPlacement = '0';
+      break;
+    }
+    const offsetX = this.offsetX ? this.offsetX : '0';
+    const offsetY = this.offsetY ? this.offsetY : autoOffsetYByPlacement;
+    return 'translate(' + offsetX + ',' + offsetY + ')';
+  }
+  ngOnDestroy(): void {
+    if (this.pressEscToClose) {
+      this.pressEscToClose.unsubscribe();
+      this.pressEscToClose = null;
+    }
   }
 }

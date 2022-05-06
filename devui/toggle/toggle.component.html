@@ -1,12 +1,15 @@
-
-<span class="devui-toggle"
-    [class.checked]="checked"
-    [class.disabled]="disabled"
-    [class.toggle-large]="size === 'large'"
-    [class.toggle-medium]="size === 'medium'"
-    [class.toggle-small]="size === 'small'"
-    [style.background]="checked ? color : ''"
-    [style.border-color]="checked ? color : ''"
-    >
+<span
+  class="devui-toggle {{ size ? 'devui-toggle-' + size : '' }}"
+  [ngClass]="{ 'devui-checked': checked, 'devui-disabled': disabled }"
+  [style.background]="checked && !disabled ? color : ''"
+  [style.border-color]="checked && !disabled ? color : ''"
+>
+  <span class="devui-toggle-inner-wrapper">
+    <ng-template [ngTemplateOutlet]="customTemplate || defaultTemplate"></ng-template>
+  </span>
   <small></small>
 </span>
+
+<ng-template #defaultTemplate>
+  <div class="devui-toggle-inner" [innerHTML]="content | safe: 'html'"></div>
+</ng-template>

@@ -1,6 +1,6 @@
 import { ComponentFactoryResolver, Injectable } from '@angular/core';
-import { assign, isUndefined } from 'lodash-es';
 import { OverlayContainerRef } from 'ng-devui/overlay-container';
+import { assign, isUndefined } from 'lodash-es';
 import { DrawerComponent } from './drawer.component';
 import { IDrawerOpenResult, IDrawerOptions } from './drawer.types';
 
@@ -9,22 +9,29 @@ export class DrawerService {
   constructor(
     private overlayContainerRef: OverlayContainerRef,
     private componentFactoryResolver: ComponentFactoryResolver
-  ) {}
+  ) { }
 
   open({
     drawerContentComponent,
     injector,
     componentFactoryResolver,
+    id,
+    zIndex,
     width,
-    fullScreen,
+    fullScreen, // @deprecated
     data,
     isCover,
     clickDoms,
     onClose,
+    afterOpened,
     backdropCloseable,
     escKeyCloseable,
     beforeHidden,
-    destroyOnHide = true
+    destroyOnHide = true,
+    position = 'right',
+    bodyScrollable = true,
+    showAnimation = true,
+    contentTemplate
   }: IDrawerOptions): IDrawerOpenResult {
     const componentFactoryResolver_ = componentFactoryResolver || this.componentFactoryResolver;
     const drawerRef = this.overlayContainerRef.createComponent(
@@ -32,28 +39,40 @@ export class DrawerService {
       injector
     );
     assign(drawerRef.instance, {
+      id,
       width,
+      zIndex,
       isCover,
       clickDoms,
       fullScreen,
       beforeHidden,
+      afterOpened,
       escKeyCloseable,
-      backdropCloseable: isUndefined(backdropCloseable) ? true : backdropCloseable
+      position,
+      backdropCloseable: isUndefined(backdropCloseable) ? true : backdropCloseable,
+      bodyScrollable,
+      showAnimation,
+      contentTemplate
     });
 
-    const drawerContentRef = drawerRef.instance.drawerContentHost.viewContainerRef.createComponent(
-      componentFactoryResolver_.resolveComponentFactory(drawerContentComponent),
-      0,
-      injector
-    );
-    assign(drawerContentRef.instance, data);
+    let drawerContentRef;
+    if (drawerContentComponent) {
+      drawerContentRef = drawerRef.instance.drawerContentHost.viewContainerRef.createComponent(
+        componentFactoryResolver_.resolveComponentFactory(drawerContentComponent),
+        0,
+        injector
+      );
+      assign(drawerContentRef.instance, data);
+    }
 
     drawerRef.instance.onHidden = () => {
       if (onClose) {
         onClose();
       }
       if (destroyOnHide) {
-        drawerRef.hostView.destroy();
+        setTimeout(() => {
+          drawerRef.hostView.destroy();
+        });
       }
     };
 
@@ -66,7 +85,7 @@ export class DrawerService {
     drawerRef.instance.show();
     return {
       drawerInstance: drawerRef.instance,
-      drawerContentInstance: drawerContentRef.instance
+      drawerContentInstance: drawerContentRef ? drawerContentRef.instance : null
     };
   }
 }

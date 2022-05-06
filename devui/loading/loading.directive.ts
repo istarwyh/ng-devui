@@ -1,27 +1,25 @@
 import {
-  Directive,
-  ComponentFactoryResolver,
   ComponentRef,
+  Directive,
   ElementRef,
-  Input,
-  ViewContainerRef,
-  Injector,
-  ViewRef,
   EmbeddedViewRef,
-  TemplateRef,
-  HostBinding
+  HostBinding,
+  Injector,
+  Input,
+  OnChanges,
+  SimpleChanges,
+  TemplateRef, ViewContainerRef, ViewRef
 } from '@angular/core';
+import { forkJoin, from, Observable, Subscription, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { LoadingBackdropComponent } from './loading-backdrop.component';
 import { LoadingComponent } from './loading.component';
-import { Observable, from, forkJoin } from 'rxjs';
 import { LoadingType } from './loading.types';
-import { catchError } from 'rxjs/operators';
-import { throwError } from 'rxjs';
 @Directive({
   selector: '[dLoading]',
   exportAs: 'dLoading'
 })
-export class LoadingDirective {
+export class LoadingDirective implements OnChanges {
   @Input() message: string;
   @Input() backdrop: boolean;
   @Input() loadingTemplateRef: TemplateRef<any>;
@@ -33,16 +31,36 @@ export class LoadingDirective {
   @HostBinding('style.position')
   position: string;
 
-  @Input() set showLoading(_showLoading: boolean) {
-    if (_showLoading === true) {
-      this.startLoading();
-    } else {
-      this.endLoading();
+  @Input() showLoading;
+
+  @Input() loading: LoadingType;
+  @Input() zIndex: number ;
+  backdropRef: ComponentRef<any>;
+  loadingRef: ComponentRef<any>;
+  active = true;
+
+  constructor(
+    private triggerElementRef: ElementRef,
+    private viewContainerRef: ViewContainerRef,
+    private injector: Injector,
+    private elementRef: ElementRef
+  ) { }
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['showLoading'] || changes['loading'] || changes['backdrop'] || changes['loadingTemplateRef']
+      || changes['message'] || changes['positionType'] || changes['view']  || changes['zIndex']) {
+      if (this.showLoading !== undefined) {
+        this.showLoadingChangeEvent(this.showLoading);
+      }
+      if (this.loading !== undefined) {
+        this.loadingChangeEvent(this.loading);
+      }
     }
   }
 
-  @Input() set loading(loading: LoadingType) {
-    if (loading === undefined) {
+  loadingChangeEvent(loading) {
+    if (loading instanceof Subscription) {
+      this.startLoading();
+      loading.add(() => this.endLoading());
       return;
     }
     const loadingArr = [].concat(loading).map(item => {
@@ -60,53 +78,56 @@ export class LoadingDirective {
             return throwError(error);
           })
         )
-        .subscribe(
-          null,
-          () => {},
-          () => {
+        .subscribe({
+          next: null,
+          error: () => {
+            this.endLoading();
+          },
+          complete: () => {
             this.endLoading();
           }
+        }
+
         );
     }
   }
 
-  backdropRef: ComponentRef<any>;
-  loadingRef: ComponentRef<any>;
-  active = true;
-
-  constructor(
-    private componentFactoryResolver: ComponentFactoryResolver,
-    private triggerElementRef: ElementRef,
-    private viewContainerRef: ViewContainerRef,
-    private injector: Injector,
-    private elementRef: ElementRef
-  ) {}
-
+  showLoadingChangeEvent(showLoading) {
+    if (showLoading === true) {
+      this.startLoading();
+    } else {
+      this.endLoading();
+    }
+  }
   private startLoading() {
+    this.position = this.positionType || 'relative';
+
+    if (this.backdrop && !this.backdropRef) {
+      this.createLoadingBackdrop();
+    }
+
+    if (!this.backdrop && this.backdropRef) {
+      this.backdropRef.destroy();
+      this.backdropRef = null;
+    }
+
     if (!this.loadingRef) {
-
-      this.position = this.positionType || 'relative';
-
-      if (this.backdrop) {
-        this.createLoadingBackdrop();
-      }
-
-      this.loadingRef = this.viewContainerRef.createComponent(
-        this.componentFactoryResolver.resolveComponentFactory(LoadingComponent),
-        null,
-        this.injector
-      );
+      this.loadingRef = this.viewContainerRef.createComponent(LoadingComponent, {
+        index: null,
+        injector: this.injector,
+      });
 
       this.insert(this.loadingRef.hostView);
-
-      Object.assign(this.loadingRef.instance, {
-        message: this.message,
-        loadingTemplateRef: this.loadingTemplateRef,
-        top: this.view ? this.view.top : '50%',
-        left: this.view ? this.view.left : '50%',
-        isCustomPosition: !!this.view // 用户未传入view时为undefined，返回false
-      });
     }
+
+    Object.assign(this.loadingRef.instance, {
+      message: this.message,
+      loadingTemplateRef: this.loadingTemplateRef,
+      top: this.view ? this.view.top : '50%',
+      left: this.view ? this.view.left : '50%',
+      isCustomPosition: !!this.view,
+      zIndex: this.zIndex ? this.zIndex : '',
+    });
   }
 
   private endLoading() {
@@ -125,16 +146,16 @@ export class LoadingDirective {
   private createLoadingBackdrop() {
     this.backdropRef =
       !this.backdropRef &&
-      this.viewContainerRef.createComponent(
-        this.componentFactoryResolver.resolveComponentFactory(LoadingBackdropComponent),
-        null,
-        this.injector
-      );
+      this.viewContainerRef.createComponent(LoadingBackdropComponent, {
+        index: null,
+        injector: this.injector,
+      });
     this.insert(this.backdropRef.hostView);
 
     Object.assign(this.backdropRef.instance, {
       triggerElementRef: this.triggerElementRef,
-      backdrop: this.backdrop
+      backdrop: this.backdrop,
+      zIndex: this.zIndex ? this.zIndex : ''
     });
   }
 

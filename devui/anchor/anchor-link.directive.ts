@@ -1,13 +1,15 @@
-import { Directive, forwardRef, HostListener, Inject, Input, OnDestroy, OnInit, HostBinding } from '@angular/core';
-import { AnchorDirective } from './anchor.directive';
+import { Directive, forwardRef, HostBinding, HostListener, Inject, Input, OnDestroy, OnInit } from '@angular/core';
+import { scrollAnimate } from 'ng-devui/utils';
 import { AnchorBoxDirective } from './anchor-box.directive';
+import { AnchorDirective } from './anchor.directive';
+import { AnchorActiveChangeSource } from './anchor.type';
 
 @Directive({
   selector: '[dAnchorLink]',
 })
 export class AnchorLinkDirective implements OnInit, OnDestroy {
   @HostBinding('class') get anchorActiveClass() {
-    return (this.anchorBlock && this.anchorBlock.isActive) ? (this.anchorActive || '') : '';
+    return this.anchorBlock && this.anchorBlock.isActive ? this.anchorActive || '' : '';
   }
   private _anchorName;
   @Input('dAnchorLink')
@@ -15,35 +17,37 @@ export class AnchorLinkDirective implements OnInit, OnDestroy {
     this._anchorName = anchor;
     this.bindAnchorAfterBoxReady();
   }
-  get anchorName() { return this._anchorName; }
+  get anchorName() {
+    return this._anchorName;
+  }
 
   @Input() anchorActive: string;
 
   boxElement: AnchorBoxDirective;
   anchorBlock: AnchorDirective;
-  bindingAnchorTimmer;
+  bindingAnchorTimer;
   subscription;
 
   constructor(@Inject(forwardRef(() => AnchorBoxDirective)) box: AnchorBoxDirective) {
-      this.boxElement = box;
+    this.boxElement = box;
   }
 
   ngOnInit() {
-      this.subscribeAnchroMapChange();
+    this.subscribeAnchorMapChange();
   }
 
   ngOnDestroy() {
-      if ( this.subscription) {
-          this.subscription.unsubscribe();
-      }
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
   }
 
-  subscribeAnchroMapChange() {
+  subscribeAnchorMapChange() {
     if (this.boxElement) {
       this.subscription = this.boxElement.refreshAnchorMap.subscribe(() => {
-        if (this.bindingAnchorTimmer) {
-          clearTimeout(this.bindingAnchorTimmer);
-          this.bindingAnchorTimmer = undefined;
+        if (this.bindingAnchorTimer) {
+          clearTimeout(this.bindingAnchorTimer);
+          this.bindingAnchorTimer = undefined;
         }
         this.bindAnchorAfterBoxReady();
       });
@@ -52,54 +56,47 @@ export class AnchorLinkDirective implements OnInit, OnDestroy {
 
   bindAnchorAfterBoxReady = () => {
     if (this.boxElement.anchorMap) {
-      setTimeout(() => {this.anchorBlock = this.boxElement.anchorMap[this.anchorName]; }, 0);
+      setTimeout(() => {
+        this.anchorBlock = this.boxElement.anchorMap[this.anchorName];
+      }, 0);
     } else {
-      this.bindingAnchorTimmer = setTimeout(this.bindAnchorAfterBoxReady, 500);
+      this.bindingAnchorTimer = setTimeout(this.bindAnchorAfterBoxReady, 500);
     }
-  }
+  };
 
-  @HostListener ('click')
-  scrollToAnchor() {
-    if ( !this.anchorBlock) {
+  @HostListener('click')
+  scrollToAnchor(activeChangeBy?: AnchorActiveChangeSource) {
+    if (typeof document === 'undefined') {
+      return;
+    }
+    if (!this.anchorBlock) {
       return;
     }
     const callback = () => {
-      setTimeout(() => { this.boxElement.forceActiveAnchor(this.anchorName, 'anchor-link'); }, 120);
+      setTimeout(() => {
+        this.boxElement.forceActiveAnchor(this.anchorName, activeChangeBy || 'anchor-link');
+        this.boxElement.isScrollingToTarget = false;
+      }, 120);
     };
     ((container: Element, anchor: Element) => {
-      this.scrollAnimate(
-        container,
-        container.scrollTop,
-        (container.scrollTop + anchor.getBoundingClientRect().top - (this.boxElement.view && this.boxElement.view.top || 0)),
-        undefined, undefined, callback
-      );
-    })( this.boxElement.scrollTarget || document.documentElement, this.anchorBlock.element);
-  }
-
-  scrollAnimate(target, currentTopValue, targetTopValue, timeGap: number = 40, scrollTime: number = 450, callback?) {
-    const startTimeStamp = Date.now();
-    const drawAnimateFrame = () => {
-      const currentTime = Date.now() - startTimeStamp;
-      if (currentTime - timeGap > scrollTime ) {
-        target.scrollTop = targetTopValue;
-        if (callback) {
-            callback();
-        }
-      } else {
-        target.scrollTop = this.easeInOutCubic(currentTime, currentTopValue, targetTopValue, scrollTime);
-        setTimeout(() => {requestAnimationFrame(drawAnimateFrame); }, timeGap);
+      let containerScrollTop = container.scrollTop;
+      let containerOffsetTop = container.getBoundingClientRect().top;
+      if (container === document.documentElement) {
+        containerScrollTop += document.body.scrollTop; // scrollTop兼容性问题
+        containerOffsetTop = 0; // offsettop抵消
       }
-    };
-    requestAnimationFrame(drawAnimateFrame);
-  }
-
-  easeInOutCubic(t: number, b: number, c: number, d: number): number {
-    const cc = c - b;
-    let tt = t / (d / 2);
-    if (tt < 1) {
-      return cc / 2 * tt * tt * tt + b;
-    } else {
-      return cc / 2 * ((tt -= 2) * tt * tt + 2) + b;
-    }
+      scrollAnimate(
+        container,
+        containerScrollTop,
+        containerScrollTop +
+          anchor.getBoundingClientRect().top -
+          containerOffsetTop -
+          ((this.boxElement.view && this.boxElement.view.top) || 0),
+        undefined,
+        undefined,
+        callback
+      );
+    })(this.boxElement.scrollTarget || document.documentElement, this.anchorBlock.element);
+    this.boxElement.isScrollingToTarget = true;
   }
 }

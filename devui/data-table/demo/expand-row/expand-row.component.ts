@@ -1,6 +1,6 @@
-import { Component, OnInit, HostBinding, ViewChild, ElementRef, AfterContentInit } from '@angular/core';
+import { AfterContentInit, Component, ElementRef, HostBinding, OnInit, ViewChild } from '@angular/core';
+import { TableWidthConfig } from 'ng-devui/data-table';
 import { originSource, SourceType } from '../mock-data';
-import { TableExpandConfig } from '../../data-table.model';
 
 @Component({
   selector: 'd-expand-row',
@@ -17,8 +17,8 @@ import { TableExpandConfig } from '../../data-table.model';
     cursor: pointer;
   }
   .edit-padding-fix {
-    margin-top: -6px;
-    margin-bottom: -6px;
+    margin-top: -2px;
+    margin-bottom: -2px;
   }
   .tips-icon {
     margin-right: 5px;
@@ -32,8 +32,32 @@ export class ExpandRowComponent implements OnInit, AfterContentInit {
   @ViewChild('addSubRowContent') addSubRowContent: ElementRef;
 
   basicDataSource: Array<SourceType> = JSON.parse(JSON.stringify(originSource.slice(0, 6)));
-  genderSource = ['male', 'female'];
-  headerExpandConfig: TableExpandConfig;
+  tableWidthConfig: TableWidthConfig[] = [
+    {
+      field: 'expand',
+      width: '36px'
+    },
+    {
+      field: '$index',
+      width: '50px'
+    },
+    {
+      field: 'firstName',
+      width: '150px'
+    },
+    {
+      field: 'lastName',
+      width: '150px'
+    },
+    {
+      field: 'gender',
+      width: '100px'
+    },
+    {
+      field: 'dob',
+      width: '100px'
+    }
+  ];
   defaultRowData = {
     firstName: '',
     lastName: '',
@@ -41,44 +65,40 @@ export class ExpandRowComponent implements OnInit, AfterContentInit {
     dob: new Date(1991, 3, 1),
   };
 
-  thisCellEditEnd(event) {
-    console.log('cellEditEnd');
-    console.log(event.rowItem);
-  }
-
+  headerNewForm: boolean;
   ngOnInit() {
+    this.basicDataSource[0].$expandConfig = { expand: false };
   }
 
-  ngAfterContentInit() {
-    this.headerExpandConfig = { expand: true, expandTemplateRef: this.quickAddRowTip };
-  }
+  ngAfterContentInit() {}
 
   newRow() {
-    this.headerExpandConfig.expandTemplateRef = this.quickAddRowContent;
+    this.headerNewForm = true;
   }
 
   quickRowAdded() {
     const newData = { ...this.defaultRowData };
     this.basicDataSource.unshift(newData);
-    this.headerExpandConfig.expandTemplateRef = this.quickAddRowTip;
+    this.headerNewForm = false;
   }
 
   quickRowCancel() {
-    this.headerExpandConfig.expandTemplateRef = this.quickAddRowTip;
-  }
-
-  addSubData(index, item) {
-    this.basicDataSource[index].expandConfig = { expand: true, expandTemplateRef: this.addSubRowContent };
+    this.headerNewForm = false;
   }
 
   subRowAdded(index, item) {
-    this.basicDataSource[index].expandConfig.expand = false;
+    this.basicDataSource[index].$expandConfig.expand = false;
     const newData = { ...this.defaultRowData };
     this.basicDataSource.splice(index + 1, 0, newData);
   }
 
   subRowCancel(index) {
-    this.basicDataSource[index].expandConfig.expand = false;
+    this.basicDataSource[index].$expandConfig.expand = false;
   }
 
+  toggleExpand(rowItem) {
+    if (rowItem.$expandConfig) {
+      rowItem.$expandConfig.expand = !rowItem.$expandConfig.expand;
+    }
+  }
 }

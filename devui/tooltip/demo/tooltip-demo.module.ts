@@ -1,39 +1,42 @@
-import { RouterModule } from '@angular/router';
-import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TooltipModule } from '../tooltip.module';
-import { TooltipDemoComponent } from './tooltip-demo.component';
-import { BasicComponent } from './basic/basic.component';
-import { ButtonModule } from '../../button';
-import { DevUICodeboxModule } from 'ng-devui/shared/devui-codebox';
+import { NgModule } from '@angular/core';
+import { RouterModule } from '@angular/router';
+import { ButtonModule } from 'ng-devui/button';
 import { DevUIApiComponent } from 'ng-devui/shared/devui-api/devui-api.component';
 import { DevUIApiModule } from 'ng-devui/shared/devui-api/devui-api.module';
-
+import { DevUICodeboxModule } from 'ng-devui/shared/devui-codebox';
+import { TooltipModule } from 'ng-devui/tooltip';
+import { TranslateModule } from '@ngx-translate/core';
+import { DDemoNavModule } from 'src/app/component/d-demo-nav.module';
+import { BasicComponent } from './basic/basic.component';
+import { DelayComponent } from './delay/delay.component';
+import { TooltipDemoComponent } from './tooltip-demo.component';
 
 @NgModule({
   imports: [
+    TranslateModule,
     CommonModule,
     TooltipModule,
     DevUICodeboxModule,
     ButtonModule,
     DevUIApiModule,
+    DDemoNavModule,
     RouterModule.forChild([
       { path: '',  redirectTo: 'demo' },
       { path: 'demo', component: TooltipDemoComponent},
       { path: 'api', component: DevUIApiComponent, data: {
-        api: require('!html-loader!markdown-loader!../doc/api.md')
+        'zh-cn': require('!html-loader!markdown-loader!../doc/api-cn.md'),
+        'en-us': require('!html-loader!markdown-loader!../doc/api-en.md')
       }}
     ])
   ],
   exports: [TooltipDemoComponent],
   declarations: [
     TooltipDemoComponent,
-    BasicComponent
+    BasicComponent,
+    DelayComponent
   ],
-  entryComponents: [
-    TooltipDemoComponent,
-  ],
+
 })
 export class TooltipDemoModule {
 }
-

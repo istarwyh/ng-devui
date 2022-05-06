@@ -1,19 +1,15 @@
+import { DOCUMENT } from '@angular/common';
 import {
-  Input,
-  ViewContainerRef,
-  Component,
-  OnInit,
+  AfterViewInit, Component,
   ComponentFactoryResolver,
-  ViewChild,
-  ViewChildren,
-  QueryList,
-  ElementRef,
-  AfterViewInit
+  ElementRef, Inject, Input,
+  OnInit,
+  QueryList, ViewChildren
 } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { IExampleData } from 'ng-devui/shared/helpers';
-
-import * as hljs from 'highlight.js/lib/highlight';
-import { Router, ActivatedRoute } from '@angular/router';
+import { TranslateService, TranslationChangeEvent } from '@ngx-translate/core';
+import * as hljs from 'highlight.js/lib/core';
 
 ['javascript', 'typescript'].forEach((langName) => {
   // Using require() here because import() support hasn't landed in Webpack yet
@@ -23,44 +19,9 @@ import { Router, ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'd-demo-cell',
-  styles: [`
-:host /deep/ section h4,
-:host /deep/ section h5 {
-    font-weight: bold;
-    color: rgba(0, 0, 0, 0.4);
-}
-
-:host /deep/ section {
-  margin-bottom: 50px;
-}
-
-.examples-viewer-title {
-  display: flex;
-  padding: 8px 20px;
-  font-size: 18px;
-  font-weight: bold;
-}
-
-.examples {
-  position: relative;
-  padding: 30px;
-  background: #fff;
-}
-
-div.html, div.typescript, div.markdown {
-  padding: 0;
-}
-
-.html pre, .typescript pre, .markdown pre {
-  padding: 26.5px;
-}
-
-:host /deep/ pre table {
-    width: 100%;
-    max-width: 100%;
-    margin-bottom: 20px;
-}
-`],
+  styleUrls: [
+    './example-panel.component.scss'
+  ],
   templateUrl: './example-panel.component.html'
 })
 export class ExamplePanelComponent implements OnInit, AfterViewInit {
@@ -69,36 +30,49 @@ export class ExamplePanelComponent implements OnInit, AfterViewInit {
   @ViewChildren('typescript') typescript: QueryList<ElementRef>;
   @ViewChildren('documentation') documentation: QueryList<ElementRef>;
   componentName: string;
-  componentTab: string;
-
+  componentTab: string | number;
+  description: string;
+  tmw: string;
+  componentPath: string;
+  document: Document;
   constructor(private componentFactoryResolver: ComponentFactoryResolver,
-    private router: Router, private route: ActivatedRoute) {
+              private router: Router, private route: ActivatedRoute, private translate: TranslateService,
+              @Inject(DOCUMENT) private doc: any) {
+    this.document = this.doc;
   }
 
   ngOnInit(): void {
+    const array = this.router.url.split('/');
+    this.componentPath  = array[array.length - 2];
+    this.getData(this.translate.translations[this.translate.currentLang]);
+    this.translate.onLangChange.subscribe((event: TranslationChangeEvent) => {
+      this.getData(event.translations);
+    });
     this.route.url.subscribe(UrlSegments => {
-      const names = UrlSegments[0].path.split('-').map((urlSegment) => {
-        return `${urlSegment.charAt(0).toUpperCase()}${urlSegment.slice(1)}`;
-      });
-      this.componentName = names.join(' ');
-      this.componentTab = this.router.url.split('/').pop();
+      const fragmentIndex = this.router.url.split('/').pop().indexOf('#');
+      this.componentTab = fragmentIndex === -1
+        ? this.router.url.split('/').pop() : this.router.url.split('/').pop().slice(0, fragmentIndex);
     });
-
-    this.route.data.subscribe((data: IExampleData) => {
-      this.data = data;
-    });
-
   }
 
-  activeTabChange (tab: string) {
+  getData (translations) {
+    if (translations && Object.prototype.hasOwnProperty.call(translations['components'], this.componentPath)) {
+      const component = translations['components'][this.componentPath];
+      this.componentName = component.name;
+      this.description = component.description;
+      this.tmw = component.tmw;
+    }
+  }
+
+  activeTabChange(tab: string | number) {
     const navigation = this.router.url.split('/');
     navigation.pop();
-    navigation.push(tab);
+    navigation.push(tab as string);
     this.router.navigate(navigation);
   }
 
   ngAfterViewInit(): void {
-    document.body.scrollTop = document.documentElement.scrollTop = 0;
+    this.document.body.scrollTop = this.document.documentElement.scrollTop = 0;
     if ((this.typescript.last || {} as any).nativeElement) {
       hljs.highlightBlock(this.typescript.last.nativeElement);
     }
@@ -120,4 +94,3 @@ export class ExamplePanelComponent implements OnInit, AfterViewInit {
     });
   }
 }
-

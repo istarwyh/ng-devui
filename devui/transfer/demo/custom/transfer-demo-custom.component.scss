@@ -1,0 +1,19 @@
+@import '~ng-devui/styles-var/devui-var.scss';
+
+.title {
+  display: flex;
+  height: 40px;
+  line-height: 40px;
+  align-items: center;
+  -webkit-align-items: center;
+  -moz-align-items: center;
+  -ms-align-items: center;
+  -o-align-items: center;
+  margin-left: 20px;
+}
+
+.line {
+  height: 1px;
+  background: $devui-dividing-line;
+  margin-bottom: 8px;
+}

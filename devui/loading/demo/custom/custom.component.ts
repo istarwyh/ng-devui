@@ -2,60 +2,35 @@ import {
   Component,
   OnInit
 } from '@angular/core';
+import { LoadingType } from 'ng-devui/loading';
 import { timer } from 'rxjs';
-import { pullAt, random } from 'lodash-es';
-import {LoadingType} from 'ng-devui/loading';
-
-
-/**
- *  Mock HTTP Request.
- */
-const mockFetchNames = (url: string) => new Promise((resolve) => {
-  const mockNames = [
-    'Arnold', 'Ashley', 'Atkins', 'Burton', 'Butler', 'Byers',
-    'Byrd', 'Cabrera', 'Dyer', 'Eaton', 'Francis', 'Franco',
-    'Stone', 'Talley', 'Tanner', 'Tyson', 'Underwood', 'Valdez',
-    'Vang', 'Wade', 'Wynn', 'Yang', 'Young', 'Zamora', 'Zimmerman',
-  ];
-
-  const getRandomName = () => {
-    const margin = mockNames.length - 1;
-    return pullAt(
-      mockNames,
-      [
-        random(margin),
-        random(margin),
-        random(margin),
-      ],
-    );
-  };
-
-  setTimeout(() => {
-    resolve([
-      getRandomName(),
-      getRandomName(),
-      getRandomName(),
-    ]);
-  }, 2500);
-});
 
 @Component({
   selector: 'd-custom',
   templateUrl: './custom.component.html',
-  styleUrls: ['./custom.component.css']
+  styleUrls: ['./custom.component.scss']
 })
 export class CustomComponent implements OnInit {
+  loading1: LoadingType;
   loading2: LoadingType;
-  showLoading = false;
+  showLoading = true;
   tableNames: string[][] = [[]];
+  view = {
+    top: '50px',
+    left: '50%'
+  };
   constructor() {
+    this.loading1 = undefined;
     this.loading2 = undefined;
   }
 
   ngOnInit() {
   }
 
-  fetchCustomLoading() {
+  fetchCustomLoading1() {
+    this.loading1 = timer(3500).toPromise();
+  }
+  fetchCustomLoading2() {
     this.loading2 = timer(3500).toPromise();
   }
 

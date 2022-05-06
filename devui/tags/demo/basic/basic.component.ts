@@ -1,21 +1,30 @@
-import {
-  Component, OnInit
-} from '@angular/core';
+import { Component } from '@angular/core';
 
 @Component({
   selector: 'd-basic',
-  templateUrl: './basic.component.html'
+  templateUrl: './basic.component.html',
 })
-
 export class BasicComponent {
-  tagList: any = ['标签1', '标签2', '标签3', '标签4', '标签5', '标签6', '标签7'];
+  tagList: any = ['label1', 'label2', 'label3', 'label4', 'label5', 'label6', 'label7'];
   tagList2: any = [
-    { id: 918, name: '标签颜色1', labelStyle: 'blue-w98' }, { id: 1769, name: '标签颜色2', labelStyle: 'green-w98' },
-     { id: 555, name: '标签颜色3', labelStyle: 'yellow-w98' }, { id: 668, name: '标签颜色4', labelStyle: 'orange-w98' }
-    ];
+    { id: 918, name: 'label color1', labelStyle: 'blue-w98' },
+    { id: 1769, name: 'label color2', labelStyle: 'green-w98' },
+    { id: 555, name: 'label color3', labelStyle: 'yellow-w98' },
+    { id: 668, name: 'custom color', customColor: '#f50' },
+  ];
+  tagList3: any = [
+    { id: 918, name: 'label color1', labelStyle: 'blue-w98' },
+    { id: 1769, name: 'label color2', labelStyle: 'green-w98' },
+    { id: 555, name: 'label color3', labelStyle: 'yellow-w98' },
+    { id: 668, name: 'custom color', customColor: '#f50' },
+  ];
   tagList_custom: any = [
-    { id: 1, name: '测试1', labelStyle: 'blue-w98' }, { id: 2, name: '测试2', labelStyle: 'green-w98' },
-    { id: 3, name: '测试3', labelStyle: 'yellow-w98' }, { id: 4, name: '测试4', labelStyle: 'orange-w98' }];
+    { id: 1, name: 'test1', labelStyle: 'blue-w98' },
+    { id: 2, name: 'test2', labelStyle: 'green-w98' },
+    { id: 3, name: 'test3', labelStyle: 'yellow-w98' },
+    { id: 4, name: 'test4', labelStyle: 'orange-w98' },
+  ];
+
   getTagValue(value) {
     console.log(this.tagList_custom);
     console.log(value.tag);

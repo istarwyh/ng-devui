@@ -1,52 +1,74 @@
 import {
+  AfterContentChecked,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
-  Input,
-  Directive,
   ElementRef,
-  OnInit,
-  Output,
   EventEmitter,
+  HostListener,
+  Input,
+  Output,
+  TemplateRef,
+  ViewChild
 } from '@angular/core';
-
 export type IButtonType = 'button' | 'submit' | 'reset';
-export type IButtonStyle = 'common' | 'primary' | 'text' | 'text-dark';
-export type IButtonSize = 'lg' | 'sm' | 'xs';
+/**
+ * 类型中text-dark参数废弃
+ */
+export type IButtonStyle = 'common' | 'primary' | 'text' | 'text-dark' | 'danger' | 'success' | 'warning';
+export type IButtonPosition = 'left' | 'right' | 'default';
+export type IButtonSize = 'lg' | 'md' | 'sm' | 'xs';
 
 @Component({
   selector: 'd-button',
   templateUrl: './button.component.html',
-  styleUrls: ['./button.component.scss']
+  styleUrls: ['./button.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  preserveWhitespaces: false,
 })
-export class ButtonComponent {
+export class ButtonComponent implements AfterContentChecked {
   @Input() id: string;
   @Input() type: IButtonType = 'button';
   @Input() bsStyle: IButtonStyle = 'primary';
-  @Input() bsSize: IButtonSize = 'sm';
+  @Input() bsSize: IButtonSize = 'md';
+  /**
+   * @deprecated
+   * 原左右按钮用按钮组实现
+   */
+  @Input() bsPosition: IButtonPosition = 'default';
   @Input() bordered: boolean;
   @Input() icon: string;
   @Input() disabled = false;
   @Input() showLoading = false;
   @Input() width?: string;
   @Input() autofocus = false;
-  @Output() btnClick = new EventEmitter();
-  constructor() {
+  @Input() loadingTemplateRef: TemplateRef<any>;
+  @Output() btnClick = new EventEmitter<MouseEvent>();
+  @ViewChild('buttonContent', { static: true }) buttonContent: ElementRef;
+
+  @HostListener('click', ['$event'])
+  handleDisabled($event: Event) {
+    if (this.disabled) {
+      $event.preventDefault();
+      $event.stopImmediatePropagation();
+    }
   }
 
-  // 新增click事件，解决直接在host上使用click，IE在disabled状态下还能触发事件
+  constructor(private cd: ChangeDetectorRef) {
+  }
+
+  // 新增click事件，解决直接在host上使用click，在disabled状态下还能触发事件
   onClick(event) {
-    this.btnClick.emit(event);
+    if (!this.showLoading) {
+      this.btnClick.emit(event);
+    }
   }
-}
 
-@Directive({
-  selector: '[dBtnAutofocus]',
-})
-export class BtnAutoFocusDirective implements OnInit {
-  @Input() dBtnAutofocus = false;
-  constructor(private element: ElementRef) { }
-  ngOnInit() {
-      if (this.dBtnAutofocus) {
-          this.element.nativeElement.focus();
-      }
+  ngAfterContentChecked(): void {
+    this.cd.detectChanges();
+  }
+
+  hasContent() {
+    return !!this.buttonContent && this.buttonContent.nativeElement && this.buttonContent.nativeElement.innerHTML.trim();
   }
 }

@@ -1,4 +1,7 @@
 @import '../../style/theme/color';
+@import '../../style/theme/shadow';
+@import '../../style/theme/corner';
+@import '../../style/theme/z-index';
 
 .popper {
   position: relative;
@@ -10,18 +13,44 @@
 }
 
 .popper-container {
+  &.devui-popover-container-right,
+  &.devui-popover-container-left {
+    display: flex !important;
+
+    & > .devui-dropdown-menu-wrap {
+      display: inline-block;
+    }
+
+    & > .popper-append-area {
+      display: inline-block;
+      overflow: auto;
+    }
+
+    .popper-append-area {
+      border-left: 1px solid $devui-dividing-line;
+
+      &::before {
+        display: none;
+      }
+    }
+  }
+
+  &.devui-popover-container-left .popper-append-area {
+    order: -1;
+  }
+
   display: none;
-  z-index: 1;
+  z-index: $devui-z-index-dropdown;
   position: absolute;
-  box-shadow: 0 4px 8px 0 $dark-1-boxshadow;
-  background: $white;
+  box-shadow: $devui-shadow-length-feedback-overlay $devui-shadow;
+  background: $devui-connected-overlay-bg;
   border: none;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  border-radius: $devui-border-radius;
 
   .popper-container-scrollable {
-    max-height: 300px;
-    min-height: 80px;
+    min-height: 40px;
     width: 100%;
     overflow-y: auto;
     overflow-x: auto;

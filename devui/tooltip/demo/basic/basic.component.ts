@@ -1,4 +1,4 @@
-import { Component, OnInit, HostBinding } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 
 @Component({
   selector: 'd-basic',
@@ -6,12 +6,11 @@ import { Component, OnInit, HostBinding } from '@angular/core';
   styleUrls: ['./basic.component.css']
 })
 export class BasicComponent implements OnInit {
-  message = 'I have animation!';
+  message = 'Upload a file in sh,js,ts,java,css,html,xml.aql,rb,py,php,c,cpp,txt format.';
   position: 'left';
 
-  constructor() { }
+  constructor() {}
 
-  ngOnInit() {
-  }
+  ngOnInit() {}
 
 }

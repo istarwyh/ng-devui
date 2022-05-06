@@ -1,45 +1,66 @@
-import {
-  AfterViewInit,
-  Component,
-  ElementRef,
-  QueryList,
-  ViewChildren
-} from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { AfterViewInit, Component, ElementRef, Inject, Input, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import * as hljs from 'highlight.js/lib/highlight';
-
-['bash', 'typescript'].forEach((langName) => {
+import { TranslateService, TranslationChangeEvent } from '@ngx-translate/core';
+import * as hljs from 'highlight.js/lib/core';
+['bash', 'typescript', 'json'].forEach((langName) => {
   const langModule = require(`highlight.js/lib/languages/${langName}`);
   hljs.registerLanguage(langName, langModule);
 });
 
 @Component({
   template: `
-    <div class="get-start">
-    <div class="readme">
-    <div [innerHTML]="readMe" #documentation></div>
-    </div>
+    <div dCodeCopy class="get-start">
+      <div class="readme">
+        <div [innerHTML]="readMe | safe: 'html'" #documentation></div>
+      </div>
     </div>
   `,
-    styles: [
-      `
+  styles: [
+    `
       .readme {
-        box-sizing:border-box;
+        box-sizing: border-box;
       }
-      `
-    ],
+    `,
+  ],
 })
-export class GetStartedComponent implements AfterViewInit {
-  readMe: HTMLElement = require('!html-loader!markdown-loader!./getStarted.md');
+export class GetStartedComponent implements OnInit, AfterViewInit {
+  _readMe: HTMLElement;
+  @Input() set readMe(readMe: HTMLElement) {
+    this._readMe = readMe;
+    setTimeout(() => {
+      this.refreshView();
+    });
+  }
+  get readMe() {
+    return this._readMe;
+  }
+  document: Document;
   @ViewChildren('documentation') documentation: QueryList<ElementRef>;
 
-  constructor(private route: ActivatedRoute) {
+  constructor(private route: ActivatedRoute, private translate: TranslateService, @Inject(DOCUMENT) private doc: any) {
+    this.document = this.doc;
+  }
+  ngOnInit(): void {
+    const lang = localStorage.getItem('lang');
+    this.setReadMe(lang);
+    this.translate.onLangChange.subscribe((event: TranslationChangeEvent) => {
+      this.setReadMe(event.lang);
+    });
+  }
+
+  setReadMe(lang) {
+    const currLang = lang === 'en-us' ? 'en' : 'cn';
+    this.readMe = require(`!html-loader!markdown-loader!./getStarted-${currLang}.md`);
+  }
+
+  refreshView() {
+    Array.from<HTMLElement>(this.document.querySelectorAll('pre code')).forEach((block) => {
+      hljs.highlightBlock(block);
+    });
   }
 
   ngAfterViewInit(): void {
-    document.querySelectorAll('pre code').forEach((block) => {
-      console.log(block);
-      hljs.highlightBlock(block);
-    });
+    this.refreshView();
   }
 }

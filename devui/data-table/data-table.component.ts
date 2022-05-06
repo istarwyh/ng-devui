@@ -1,41 +1,41 @@
+﻿import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
+import { DOCUMENT } from '@angular/common';
 import {
+  AfterContentInit,
+  AfterViewInit,
+  ChangeDetectorRef,
   Component,
-  Input,
-  ContentChildren,
-  Output,
-  EventEmitter,
   ContentChild,
+  ContentChildren,
+  ElementRef,
+  EventEmitter,
+  forwardRef,
+  HostBinding,
+  Inject,
+  Input,
+  NgZone,
+  OnChanges,
   OnDestroy,
   OnInit,
-  AfterContentInit,
+  Output,
   QueryList,
-  ElementRef,
-  ViewChild,
-  HostListener,
-  HostBinding,
-  ChangeDetectorRef,
+  Renderer2,
+  SimpleChanges,
   TemplateRef,
-  NgZone
+  ViewChild
 } from '@angular/core';
-import { DataTableColumnTmplComponent } from './tmpl/data-table-column-tmpl.component';
+import { merge, Subscription } from 'rxjs';
+import { switchMap, takeUntil } from 'rxjs/operators';
 import {
-  CellSelectedEventArg,
-  RowCheckChangeEventArg,
-  RowSelectedEventArg,
-  ColumnDefs,
-  DataTablePager,
-  SortEventArg,
-  FilterConfig,
-  CheckableRelation,
-  TableExpandConfig
+  CellSelectedEventArg, CheckableRelation, ColumnResizeEventArg, RowCheckChangeEventArg,
+  RowSelectedEventArg, SortEventArg, TableCheckOptions, TableCheckStatusArg,
+  TableExpandConfig, TableWidthConfig
 } from './data-table.model';
-import { DataTableHeadTmplComponent } from './tmpl/data-table-head-tmpl.component';
-import { DataTableFootTmplComponent } from './tmpl/data-table-foot-tmpl.component';
-import { DataTableTmplsComponent } from './tmpl/data-table-tmpls.component';
-import { DataTablePagerTmplComponent } from './tmpl/data-table-pager-tmpl.component';
-import { Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { WindowRef } from 'ng-devui/window-ref';
+import { DATA_TABLE } from './data-table.token';
+import { TableTbodyComponent } from './table/body/tbody.component';
+import { TableThComponent } from './table/head/th/th.component';
+import { TableTheadComponent } from './table/head/thead.component';
+import { DataTableColumnTmplComponent } from './tmpl/data-table-column-tmpl.component';
 
 @Component({
   selector: 'd-data-table',
@@ -45,18 +45,34 @@ import { WindowRef } from 'ng-devui/window-ref';
     './data-table.component.color.scss'
   ],
   // changeDetection: ChangeDetectionStrategy.OnPush,
-  exportAs: 'dataTable'
+  exportAs: 'dataTable',
+  preserveWhitespaces: false,
+  providers: [{
+    provide: DATA_TABLE,
+    useExisting: forwardRef(() => DataTableComponent)
+  }],
 })
-export class DataTableComponent implements OnDestroy, OnInit, AfterContentInit {
-  @HostBinding ('style.display') display = 'block';
+export class DataTableComponent implements OnDestroy, OnInit, OnChanges, AfterContentInit, AfterViewInit {
   /**
    * 【可选】Datatable是否提供勾选行的功能
    */
   @Input() checkable: boolean;
   /**
+   * 【可选】表头checkbox是否disabled
+   */
+  @Input() headerCheckDisabled: boolean;
+  /**
+   * 【可选】表头checkbox是否可见
+   */
+  @Input() headerCheckVisible = true;
+  /**
+   * 【可选】表头选中的下拉项及操作
+   */
+  @Input() checkOptions: TableCheckOptions[];
+  /**
    * 【可选】是否提供显示行详情的功能
    */
-  @Input() showDetail: boolean;
+  @Input() showExpandToggle: boolean;
   /**
    * 【可选】是否固定表头（在表格超过容器最大高度时，表格可滚动时生效）
    */
@@ -66,7 +82,7 @@ export class DataTableComponent implements OnDestroy, OnInit, AfterContentInit {
    */
   @Input() scrollable: boolean;
   /**
-   * 【可选】默认表格使用的表格类型，可选值为'cell'
+   * 【可选】默认表格使用的表格类型，可选值为'cell' @deprecated
    */
   @Input() editModel = 'cell';
   /**
@@ -78,13 +94,17 @@ export class DataTableComponent implements OnDestroy, OnInit, AfterContentInit {
    */
   @Input() maxHeight: string;
   /**
-   * 表格类型,striped表现为条纹间隔
+   * 表格类型 @deprecated
    */
-  @Input() type: '' | 'striped' = '';
+  @Input() type: any;
   /**
-   * 表格是否开启鼠标hover行高亮效果
+   * 鼠标悬浮行时是否高亮
    */
-  @Input() hover = true;
+  @Input() rowHoveredHighlight = true;
+  /**
+   * 鼠标悬浮行时$hovered是否记录到rowItem中
+   */
+  @Input() generalRowHoveredData;
   /**
    * 表格自定义样式
    */
@@ -94,14 +114,13 @@ export class DataTableComponent implements OnDestroy, OnInit, AfterContentInit {
    */
   @Input() tableWidth = '100%';
   /**
-   * 【可选】列引用，用于列渲染
-   * 接口如下
-   * export interface ColumnDefs {
-   *   render: (data: any, row: any[]) => any;
-   *   target: string;
-   * }
+   * 表格高度
    */
-  @Input() columnDefs: ColumnDefs[];
+  @Input() tableHeight: string;
+  /**
+   * 固定表头指定高度是否包含表头的高度，`tableHeight`设置的高度默认是表格body的高度
+   */
+  @Input() containFixHeaderHeight = false;
   /**
    * 【可选】是否限制多列排序的输出限制为一项
    */
@@ -115,7 +134,15 @@ export class DataTableComponent implements OnDestroy, OnInit, AfterContentInit {
    */
   @Input() resizeable: boolean;
   /**
-   * 【可选】用来自定义详情页的模板
+   * 【可选】用来自定义表格是否可以拖动
+   */
+  @Input() colDraggable: boolean;
+  /**
+   * 【可选】用来自定义不可拖拽的前几列
+   */
+  @Input() colDropFreezeTo = 0;
+  /**
+   * 【可选】用来自定义详情页的模板 @deprecated
    */
   @Input() detailTemplateRef: TemplateRef<any>;
   /**
@@ -123,11 +150,19 @@ export class DataTableComponent implements OnDestroy, OnInit, AfterContentInit {
    */
   @Input() timeout = 300;
   /**
-   * 【可选】是否显示排序未激活图标，默认显示,
+   * 【可选】配置表头操作未激活状态下是否显示操作区域，默认不显示
    */
-  @Input() showSortIcon = true;
+  @Input() showOperationArea = false;
   /**
-   * 多列选择Change事件，用来更新多列选择数组
+   * 【可选】是否显示排序未激活图标，默认不显示,
+   */
+  @Input() showSortIcon = false;
+  /**
+   * 【可选】是否显示筛选未激活图标，默认不显示,
+   */
+  @Input() showFilterIcon = false;
+  /**
+   * 多列选择Change事件，用来更新多列选择数组, column param
    * */
   @Output() multiSortChange = new EventEmitter<SortEventArg[]>();
   /**
@@ -147,13 +182,13 @@ export class DataTableComponent implements OnDestroy, OnInit, AfterContentInit {
    */
   @Output() rowDBClick = new EventEmitter<RowSelectedEventArg>();
   /**
-* 获取checked的选项列表
-*/
-  @Output() getCheckedRows = new EventEmitter();
+  * 行detail toggle事件
+  */
+  @Output() detialToggle = new EventEmitter<any>();
   /**
-   * 表格行双击事件
+   * 表格单元格开始编辑前的拦截事件
    */
-  @Output() detialToggle = new EventEmitter<RowSelectedEventArg>();
+  @Input() beforeCellEdit: (rowItem: any, column: any) => Promise<any>;
   /**
    * 表格单元格开始编辑事件
    */
@@ -171,27 +206,24 @@ export class DataTableComponent implements OnDestroy, OnInit, AfterContentInit {
    */
   @Output() checkAllChange = new EventEmitter<boolean>();
   /**
-   * 页码变化事件
-   */
-  @Output() pageIndexChange = new EventEmitter<any>();
-  /**
    * 延迟懒加载完成事件
    */
-  @Output() loadMore = new EventEmitter();
+  @Output() loadMore = new EventEmitter<any>();
   /**
    * 列宽变化事件
    */
-  @Output() resize = new EventEmitter<DataTableColumnTmplComponent>();
+  @Output() resize = new EventEmitter<ColumnResizeEventArg>();
   /**
    * 当前表格层级，默认为0，在树形表格场景下自增长
+   * 内部嵌套使用，不对外暴露
    */
   @Input() tableLevel = 0;
-    /**
+  /**
    * 配置树形表格的父子选中是否互相关联
    * upward：选中子关联父
    * downward： 选中父关联子
    */
-  @Input() checkableRelation: CheckableRelation = {upward: true, downward: true};
+  @Input() checkableRelation: CheckableRelation = { upward: true, downward: true };
   /**
    * 异步加载子列表
    */
@@ -208,65 +240,138 @@ export class DataTableComponent implements OnDestroy, OnInit, AfterContentInit {
    * 配置header的展开内容
    */
   @Input() headerExpandConfig: TableExpandConfig;
+  /**
+   * 子列表关闭事件
+   */
+  @Output() childrenTableClose = new EventEmitter<any>();
+  /**
+   * 全部子列表关闭事件
+   */
+  @Output() allChildrenTableClose = new EventEmitter<any>();
+  /**
+   * 虚拟滚动配置
+   */
+  @Input() virtualItemSize = 40;
+  @Input() virtualMinBufferPx = 80;
+  @Input() virtualMaxBufferPx = 200;
 
-  @ContentChildren(DataTableColumnTmplComponent) columns: QueryList<
-    DataTableColumnTmplComponent
-  >;
-  @ContentChild(DataTableHeadTmplComponent)
-  headTemplate: DataTableHeadTmplComponent;
-  @ContentChild(DataTableFootTmplComponent)
-  footTemplate: DataTableFootTmplComponent;
-  @ContentChild(DataTablePagerTmplComponent)
-  pagerTemplate: DataTablePagerTmplComponent;
+  /**
+   * 懒加载
+   */
+  @Input() lazy: boolean;
+  /**
+   * 列宽配置
+   */
+  @Input() tableWidthConfig: TableWidthConfig[] = [];
+  /**
+   * 表头是否有背景色
+   */
+  @Input() headerBg: boolean;
+  /**
+   * 表格布局
+   */
+  @Input() tableLayout: 'fixed' | 'auto' = 'fixed';
+  /**
+   * 表格边框类型，默认有行边框，bordered：全边框，borderless：无边框
+   */
+  @Input() borderType: '' | 'bordered' | 'borderless' = '';
+  /**
+   * 表格是否展示为斑马纹间隔
+   */
+  @Input() striped: boolean;
+  /**
+   * 表格内部滚动事件
+   */
+  @Output() tableScrollEvent = new EventEmitter<Event>();
+
+  @Input() minHeight: string;
+
+  @Output() columnDragEnd = new EventEmitter<any>();
+
+  /**
+   * 表格尺寸，sm对应行高40px， md对应行高48px，lg对应行高56px
+   */
+  @Input() size: 'sm' | 'md' | 'lg' = 'sm';
+
+  @ContentChildren(DataTableColumnTmplComponent) columns: QueryList<DataTableColumnTmplComponent>;
+  @ContentChild(TableTheadComponent) innerHeader: TableTheadComponent;
+  @ContentChild(TableTbodyComponent) innerBody: TableTbodyComponent;
+  @ContentChildren(TableThComponent, { descendants: true }) thList: QueryList<TableThComponent>;
   @ContentChild('noResultTemplateRef') noResultTemplate: TemplateRef<any>;
-  @ViewChild(DataTableTmplsComponent)
-  dataTableTemplates: DataTableTmplsComponent;
-  @ViewChild('showDetailColumnRef')
-  showDetailColumn: DataTableColumnTmplComponent;
-  @ViewChild('checkableColumnRef')
-  checkableColumn: DataTableColumnTmplComponent;
-  @ViewChild('fixHeaderRef') fixHeaderRefElement: ElementRef;
-  @ViewChild('resizeBar') resizeBarRefElement: ElementRef;
-  @ViewChild('tableView') tableViewRefElement: ElementRef;
+  @ViewChild('fixHeaderContainerRef') fixHeaderContainerRefElement: ElementRef;
+  @ViewChild('tableView', { static: true }) tableViewRefElement: ElementRef;
+  @ViewChild('cdkVirtualScrollViewport') virtualScrollViewport: CdkVirtualScrollViewport;
+  @ViewChild('normalScroll') normalScrollElement: ElementRef;
+  @ViewChild('scrollViewTpl') vitualScrollElement: TemplateRef<any>;
+  @ViewChild('devuiNormalScrollBody', {read: ElementRef}) devuiNormalScrollBody: ElementRef;
+
+  @HostBinding('style.height') get hostHeight() {
+    return this.tableHeight;
+  }
 
   _dataSource: any[] = [];
   _pageAllChecked = false;
   selectable = true;
   allChecked: number[] = [];
-  _pager: DataTablePager;
   selectedRowItem: any;
   selectedColumnItem: any;
   isCellEdit: boolean;
   editRowItem: any;
-  documentClickEvent = new EventEmitter<Event>();
+  documentClickEvent = new EventEmitter<any>();
   cellEditorClickEvent = new EventEmitter<Event>();
   _hideColumn: string[] = [];
   _columns: DataTableColumnTmplComponent[];
   displayDataSource: any[];
-  _lazy = false;
-  scrollStream = new EventEmitter<Event>();
-  subscription: Subscription;
-  colSubscription: Subscription;
-
+  headertoggleTableSubscription: Subscription;
+  headerCheckStatusSubscription: Subscription;
   searchQueryChange = new EventEmitter<{ [key: string]: any }>();
-
   halfChecked = false;
+  childrenTableOpen: boolean;
+  private scrollY = 0;
+  BUILTIN_COL_WIDTH = '36px';
+  BUILTIN_COL_WIDTH_EXTRA = '55px';
+
+  tableBodyEl: ElementRef;
+  onDocumentClickListen: any;
+
+  _tableTotalWidth = 0;
+  _lastColSize = 0;
+
+  @ViewChild('tableBody') set content(content: ElementRef) {
+    setTimeout(() => {
+      this.tableBodyEl = content;
+      if (this.virtualScroll) {
+        this.initVirtualBodyHeight();
+      }
+    });
+  }
 
   @Input() set dataSource(dataSource: any[]) {
-    if (null === dataSource || !dataSource) {
+    if (dataSource === null || !dataSource) {
+    /* eslint-disable-next-line no-param-reassign */
       dataSource = [];
     }
     this._dataSource = dataSource;
-    this._pageAllChecked = dataSource && dataSource.length > 0 && !this.dataSource.some(this.isNotAllChecked);
-    this.halfChecked = (this.getCheckRows().length) && this.dataSource.some(this.isNotAllChecked);
+    const hasChecked = this.dataSource.some(this.hasChecked);
+    const hasUnChecked = this.dataSource.some(this.hasUnChecked);
+    this._pageAllChecked = dataSource && dataSource.length > 0 && !hasUnChecked;
+    this.halfChecked = hasChecked && hasUnChecked;
+
+    if (this.innerHeader) {
+      this.innerHeader.setHeaderCheckStatus({pageAllChecked: this._pageAllChecked, pageHalfChecked: this.halfChecked});
+    }
+
+    if (this.virtualScroll) {
+      this.initVirtualBodyHeight();
+    }
   }
 
   get dataSource() {
     return this._dataSource;
   }
 
-  @Input() set hideColumn(hideColume: string[]) {
-    this._hideColumn = hideColume;
+  @Input() set hideColumn(hideColumn: string[]) {
+    this._hideColumn = hideColumn;
     if (this._columns) {
       this.updateColumns();
     }
@@ -276,54 +381,56 @@ export class DataTableComponent implements OnDestroy, OnInit, AfterContentInit {
     return this._hideColumn;
   }
 
-  @Input() set pager(pager: DataTablePager) {
-    if (pager === undefined || pager === null) {
-      return;
-    } else {
-      this._pager = {
-        total: pager.total,
-        pageIndex: pager.pageIndex || 1,
-        pageSize: pager.pageSize || 10,
-        maxItems: pager.maxItems || 8,
-        selectDirection: pager.selectDirection || 'auto'
-      };
-    }
-  }
-
-  get pager() {
-    return this._pager;
-  }
-
   @Input() set pageAllChecked(pageAllChecked: boolean) {
-    if (pageAllChecked) {
-      this._dataSource = this.dataSource.map(item => {
-        if (!item.$disabled) {
-          item.$checked = true;
-        }
-        return item;
-      });
+    if (this.dataSource) {
+      this._dataSource = this.setCheckedStatus(this.dataSource, pageAllChecked);
     }
     this._pageAllChecked = pageAllChecked;
-    this.halfChecked = (this.getCheckRows().length) && this.dataSource.some(this.isNotAllChecked);
+    this.halfChecked = this.dataSource.some(this.hasChecked) && this.dataSource.some(this.hasUnChecked);
   }
 
   get pageAllChecked() {
     return this._pageAllChecked;
   }
 
-  @Input() set lazy(lazy: boolean) {
-    this._lazy = lazy;
+  virtualBodyHeight;
+  document: Document;
+  constructor(
+    private elementRef: ElementRef,
+    private ngZone: NgZone,
+    private renderer: Renderer2,
+    private cdr: ChangeDetectorRef,
+    @Inject(DOCUMENT) private doc: any) {
+    this.onDocumentClickListen = this.onDocumentClick.bind(this);
+    this.document = this.doc;
   }
 
-  get lazy() {
-    return this._lazy;
+  initVirtualBodyHeight() {
+    setTimeout(() => {
+      if (this.virtualScrollViewport) {
+        this.virtualScrollViewport.checkViewportSize();
+      }
+    });
+    if (this.tableHeight && this.tableHeight !== 'auto') {
+      this.virtualBodyHeight = this.tableHeight;
+      return;
+    }
+
+    if (!this.maxHeight) {
+      this.virtualBodyHeight = null;
+      return;
+    }
+
+    if (this.tableBodyEl) {
+      const tableHeader = this.tableBodyEl.nativeElement.querySelector('thead');
+      const tableHeaderHeight = (tableHeader?.offsetHeight + 8) || 0;
+      const curTotalHeight = this.dataSource.length * this.virtualItemSize + tableHeaderHeight;
+      this.virtualBodyHeight = curTotalHeight < parseInt(this.maxHeight, 10) ? curTotalHeight + 'px' : this.maxHeight;
+      return;
+    }
   }
 
-  constructor(private windowRef: WindowRef, private elementRef: ElementRef,
-    private changeDetectorRef: ChangeDetectorRef, private ngZone: NgZone) {
-  }
-
-  getColumns() {
+  private getColumns() {
     const cols = this.columns
       .filter(column => {
         return !this.hideColumn.some(field => column.field === field);
@@ -334,78 +441,151 @@ export class DataTableComponent implements OnDestroy, OnInit, AfterContentInit {
 
   // life hook start
   ngOnInit() {
-    if (this.lazy) {
-      this.pager = null;
-    }
-    this.setupScrollEvent();
     this.ngZone.runOutsideAngular(() => {
-      document.addEventListener(
-          'click',
-          this.onDocumentClick.bind(this)
-      );
-      window.addEventListener(
-        'wheel',
-        this.onWinScroll.bind(this)
-      );
+      this.document.addEventListener('click', this.onDocumentClickListen);
     });
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['checkable']) {
+      const checkColIndex = this.tableWidthConfig.findIndex((config) => {
+        return config.field === 'checkbox';
+      });
+      if (this.checkable) {
+        if (checkColIndex < 0) {
+          if (this.showExpandToggle) {
+            this.tableWidthConfig.splice(1, 0, {field: 'checkbox', width: this.BUILTIN_COL_WIDTH});
+          } else {
+            this.tableWidthConfig.unshift({field: 'checkbox', width: this.BUILTIN_COL_WIDTH});
+          }
+        }
+      } else {
+        if (checkColIndex > -1) {
+          this.tableWidthConfig.splice(checkColIndex, 1);
+        }
+      }
+    }
+
+    if (changes['showExpandToggle']) {
+      const expandColIndex = this.tableWidthConfig.findIndex((config) => {
+        return config.field === 'expand';
+      });
+      if (this.showExpandToggle) {
+        if (expandColIndex < 0) {
+          this.tableWidthConfig.unshift({field: 'expand', width: this.BUILTIN_COL_WIDTH});
+        }
+      } else {
+        if (expandColIndex > -1) {
+          this.tableWidthConfig.splice(expandColIndex, 1);
+        }
+      }
+    }
+
+    if (
+      this.virtualScroll &&
+      ((changes['tableHeight'] && !changes.tableHeight.firstChange) ||
+      (changes['maxHeight'] && !changes.maxHeight.firstChange) ||
+      (changes['virtualScroll'] && !changes.virtualScroll.firstChange))
+    ) {
+      this.initVirtualBodyHeight();
+    }
   }
 
   onDocumentClick($event: Event) {
     this.documentClickEvent.emit($event);
   }
 
-  onWinScroll($event: Event) {
-    this.scrollStream.emit($event);
-  }
-
   ngAfterContentInit() {
-    this.updateColumns();
-    this.columns.forEach(col => {
-      col.orderChange.subscribe(order => {
+    if (this.columns.length > 0) {
+      this.updateColumns();
+      this.columns.forEach((col) => {
+        col.orderChange.subscribe(() => {
+          this.updateColumns();
+        });
+        col.widthChange.subscribe(() => {
+          this.updateColumns();
+        });
+      });
+    }
+
+    if (this.innerHeader) {
+      this.headerCheckStatusSubscription = this.innerHeader.headerCheckStatusEvent.subscribe((status) => {
+        this.onCheckAllChange(status);
+      });
+      this.headertoggleTableSubscription = this.innerHeader.headerChildrenTableToggleEvent.subscribe((status) => {
+        this.onToggleAllChildrenTable(status);
+      });
+    } else {
+      this.columns.changes.subscribe(() => {
         this.updateColumns();
       });
+    }
+  }
+
+  ngAfterViewInit() {
+    this.thList.forEach(th => {
+      th.tableViewRefElement = this.tableViewRefElement;
     });
-    this.columns.changes.subscribe(() => {
-      this.updateColumns();
+    this.thList.changes.subscribe((list) => {
+      list.forEach(th => {
+        th.tableViewRefElement = this.tableViewRefElement;
+      });
+    });
+    if (this.onlyOneColumnSort) {
+      this.resetThSortOrder();
+    }
+    this.initScrollClass();
+  }
+
+  // 初始化时判断是否存在横向滚动，并加上相应类名
+  initScrollClass() {
+    const ele = this.normalScrollElement?.nativeElement || this.vitualScrollElement?.elementRef?.nativeElement;
+    if (ele.clientWidth !== ele.scrollWidth) {
+      this.setScrollViewClass('left');
+    }
+  }
+
+  private resetThSortOrder() {
+    merge(...this.thList?.map(th => th.sortChange)).pipe(
+      takeUntil(this.thList.changes)
+    ).subscribe((sortEvent: SortEventArg) => {
+      this.thList.filter(th => th !== sortEvent.th).forEach(th => th.clearSortOrder());
+    });
+
+    this.thList.changes.pipe(
+      switchMap(() => merge(...this.thList.map(th => th.sortChange)))
+    ).subscribe((sortEvent: SortEventArg) => {
+      this.thList.filter(th => th !== sortEvent.th).forEach(th => th.clearSortOrder());
     });
   }
 
-  updateColumns() {
+  public updateColumns() {
     this._columns = this.getColumns();
-    this.onUpdateColumnDefs();
-    this.changeDetectorRef.markForCheck();
+    this.tableWidthConfig = [];
+    if (this.showExpandToggle) {
+      this.tableWidthConfig.push({field: 'expand', width: this.BUILTIN_COL_WIDTH});
+    }
+    if (this.checkable) {
+      if (this.checkOptions && this.checkOptions.length > 0) {
+        this.tableWidthConfig.push({field: 'checkbox', width: this.BUILTIN_COL_WIDTH_EXTRA});
+      } else {
+        this.tableWidthConfig.push({field: 'checkbox', width: this.BUILTIN_COL_WIDTH});
+      }
+    }
+
+    this._columns.forEach((col) => {
+      this.tableWidthConfig.push({field: col.field, width: col.width});
+    });
   }
 
   ngOnDestroy(): void {
     this.unSubscription();
-  }
-
-  // life hook end
-
-  onUpdateColumnDefs() {
-    if (this.columnDefs) {
-      this.columnDefs.forEach(columnDef => {
-        const column = this.columns.find(
-          col => col.field === columnDef.target
-        );
-        column.formatter = columnDef.render;
-      });
-    }
+    this.document.removeEventListener('click', this.onDocumentClickListen);
   }
 
   onHandleSort(column: SortEventArg) {
-    // set column direction
-    for (let i = 0; i < this.multiSort.length; i++) {
-      if (this.multiSort[i].field === column.field) {
-        this.multiSort[i].direction = column.direction;
-        break;
-      }
-    }
-
-    if (this.multiSort) {
-      const multiSortIndex = this.multiSort.findIndex(
-        item => item.field === column.field
-      );
+    if (this.multiSort && this.multiSort.length > 0) {
+      const multiSortIndex = this.multiSort.findIndex(item => item.field === column.field);
       if (multiSortIndex !== -1) {
         this.multiSort.splice(multiSortIndex, 1);
       }
@@ -429,7 +609,9 @@ export class DataTableComponent implements OnDestroy, OnInit, AfterContentInit {
   onCellClick($event: CellSelectedEventArg) {
     this.selectedRowItem = $event.rowItem;
     this.selectedColumnItem = $event.column;
-    this.cellClick.emit($event);
+    this.ngZone.run(() => {
+      this.cellClick.emit($event);
+    });
   }
 
   onCellEditStart($event: CellSelectedEventArg) {
@@ -443,35 +625,52 @@ export class DataTableComponent implements OnDestroy, OnInit, AfterContentInit {
   }
 
   onCellDBClick($event: CellSelectedEventArg) {
-    this.cellDBClick.emit($event);
+    this.ngZone.run(() => {
+      this.cellDBClick.emit($event);
+    });
   }
 
   onRowClick($event: RowSelectedEventArg) {
     this.selectedRowItem = $event.rowItem;
-    this.rowClick.emit($event);
+    this.ngZone.run(() => {
+      this.rowClick.emit($event);
+    });
   }
 
   onRowDBClick($event: RowSelectedEventArg) {
-    this.rowDBClick.emit($event);
+    this.ngZone.run(() => {
+      this.rowDBClick.emit($event);
+    });
   }
 
   onDetailToggle($event: any) {
     this.detialToggle.emit($event);
   }
-// 判断当前数据与子数据是否全部选中
-  isNotAllChecked = (data) => {
+
+  // 判断数据是否存在选中状态
+  private hasChecked = (data) => {
+    if (data.$checked) {
+      return true;
+    }
+    if (data.children) {
+      return data.children.some(this.hasChecked);
+    }
+  };
+
+  // 判断数据是否存在未选中状态
+  private hasUnChecked = (data) => {
     if (!data.$checked) {
       return true;
     }
     if (data.children) {
-      return data.children.some(this.isNotAllChecked);
+      return data.children.some(this.hasUnChecked);
     }
-  }
+  };
 
-  onRowCheckChange($event: RowCheckChangeEventArg) {
+  setRowCheckStatus($event: RowCheckChangeEventArg) {
     // 处理children的选中
     if ($event.rowItem.children && this.checkableRelation.downward) {
-      this.setChildrenCheckedStatus($event.rowItem.children, $event.checked);
+      this.setCheckedStatus($event.rowItem.children, $event.checked);
     }
 
     // 处理parents的选中
@@ -479,28 +678,30 @@ export class DataTableComponent implements OnDestroy, OnInit, AfterContentInit {
       const nestedIndexArray = $event.nestedIndex.split(',');
       nestedIndexArray.shift();
       const nestedIndexArrayToInt = nestedIndexArray.map((value) => {
-        // tslint:disable-next-line:radix
-        return parseInt(value);
+        return parseInt(value, 10);
       });
       // 通过选中行的父级索引设置父的选中状态
       this.setParentCheckStatus(nestedIndexArrayToInt);
     }
 
     // 处理整个table header的选中
-    const hasUnChecked = this.dataSource.some((item) => {
-      return !item.$checked;
-    });
-    const hasChecked = this.dataSource.some((item) => {
-      return item.$checked || item.$halfChecked;
-    });
-    this.pageAllChecked = !hasUnChecked;
-    this.halfChecked = hasUnChecked && hasChecked;
+    const hasChecked = this.dataSource.some(this.hasChecked);
+    if ($event) {
+      const hasUnChecked = this.dataSource.some(this.hasUnChecked);
+      this._pageAllChecked = !hasUnChecked;
+      this.halfChecked = hasChecked && hasUnChecked;
+    } else {
+      this._pageAllChecked = false;
+      this.halfChecked = hasChecked;
+    }
 
+    if (this.innerHeader) {
+      this.innerHeader.setHeaderCheckStatus({pageAllChecked: this._pageAllChecked, pageHalfChecked: this.halfChecked});
+    }
     this.rowCheckChange.emit($event);
-    this.getCheckedRows.emit(this.getCheckRows());
   }
 
-  setParentCheckStatus (nestedIndex) {
+  private setParentCheckStatus(nestedIndex) {
     if (nestedIndex.length > 0) {
       const topIndex = nestedIndex[0];
       const topParent = this.dataSource[topIndex];
@@ -516,7 +717,7 @@ export class DataTableComponent implements OnDestroy, OnInit, AfterContentInit {
     }
   }
 
-  findLastParent(source, indexArray) {
+  private findLastParent(source, indexArray) {
     if (source && indexArray.length > 0) {
       const topIndex = indexArray[0];
       const topParent = source.children[topIndex];
@@ -527,7 +728,7 @@ export class DataTableComponent implements OnDestroy, OnInit, AfterContentInit {
     }
   }
 
-  setSelfCheckStatus(data) {
+  private setSelfCheckStatus(data) {
     if (data && data.children) {
       const hasUnChecked = data.children.some((child) => {
         return !child.$checked;
@@ -542,163 +743,261 @@ export class DataTableComponent implements OnDestroy, OnInit, AfterContentInit {
     }
   }
 
-  setChildrenCheckedStatus(data, checked) {
+  private setCheckedStatus(data, checked, toggle?: boolean) {
     return data.map(item => {
-      if (!item.$disabled) {
-        item.$checked = checked;
-        item.$halfChecked = false;
+      if (!(item.$checkDisabled || item.$disabled)) {
+        if ((toggle && item.$checked === undefined) || !toggle) {
+          item.$checked = checked;
+          item.$halfChecked = false;
+        }
       }
 
       if (item.children) {
-        item.children = this.setChildrenCheckedStatus(item.children, checked);
+        item.children = this.setCheckedStatus(item.children, checked, toggle);
       }
       return item;
     });
   }
 
   onCheckAllChange($event: boolean) {
-    if (this.dataSource) {
-      this._dataSource = this.setChildrenCheckedStatus(this.dataSource, $event);
-      this.pageAllChecked = $event;
-    }
-    this.halfChecked = (this.getCheckRows().length) && this.dataSource.some(this.isNotAllChecked);
+    this.pageAllChecked = $event;
     this.checkAllChange.emit($event);
-    this.getCheckedRows.emit(this.getCheckRows());
-    this.changeDetectorRef.markForCheck();
   }
 
-  onSearchQueryChange($event: { [key: string]: any; }) {
+  onSearchQueryChange($event: { [key: string]: any }) {
     this.searchQueryChange.emit($event);
-  }
-
-  onPageChange($event: number) {
-    this.pageIndexChange.emit({
-      pageIndex: $event,
-      pageSize: this.pager.pageSize
-    });
-  }
-
-  getCheckRows(): any[] {
-    return this.dataSource ? this.dataSource.filter(item => item.$checked || item.$halfChecked) : [];
   }
 
   getSelectedRowItem(): any[] {
     return this.selectedRowItem;
   }
 
-  editRow(rowItem, editModel) {
-    rowItem.$$edit = true;
-    rowItem.$$editModel = editModel;
-    this.editRowItem = rowItem;
+  onLoadMore(event) {
+    this.loadMore.emit(this);
   }
 
-  endEditRow(rowItem) {
-    const editModel = rowItem.$$editModel;
-    delete rowItem.$$edit;
-    delete rowItem.$$editModel;
-    this.editRowItem = null;
-    return editModel;
-  }
-
-  loadFinish(complete: boolean) {
-    if (complete) {
-      return this.unSubscription();
+  private updateColumnsWidth() {
+    this.tableWidthConfig = [];
+    if (this.showExpandToggle) {
+      const expandWidth = this.elementRef.nativeElement.querySelector('.devui-detail-cell').clientWidth;
+      this.tableWidthConfig.push({field: 'expand', width: expandWidth + 'px'});
     }
-    setTimeout(_ => this.onWinScroll(null), 300);
+    if (this.checkable) {
+      const checkboxWidth = this.elementRef.nativeElement.querySelector('.devui-checkable-cell').clientWidth;
+      this.tableWidthConfig.push({field: 'checkbox', width: checkboxWidth + 'px'});
+
+    }
+    this._columns.forEach((col) => {
+      this.tableWidthConfig.push({field: col.field, width: col.width});
+    });
   }
 
-  onScrollChange() {
-    const winHeight = this.windowRef.innerHeight;
-    const clientRect = this.windowRef.getBoundingClientRect(this.elementRef);
-    if (clientRect && winHeight - clientRect.bottom >= 40) {
-      this.loadMore.emit(this);
+  beginResizeHandlerEvent($event) {
+    const thRenderWidthList = $event.thRenderWidthList;
+    if (thRenderWidthList.length > 0) {
+      this._tableTotalWidth = this.elementRef.nativeElement.querySelector('.table-wrap').offsetWidth;
+      // 兼容d-column表头分组场景
+      const reverseThList = thRenderWidthList.reverse();
+      this._columns.forEach(column => {
+        const thItem = reverseThList.find(th => th.field === column.field);
+        if (thItem) {
+          column.width = thItem.width + 'px';
+        }
+      });
+
+      if (!this._lastColSize) {
+        this._lastColSize = parseInt(this._columns.slice(-1)[0].width, 10);
+      }
+      this.updateColumnsWidth();
+    }
+    this.onDocumentClick($event.event);
+  }
+
+  onResizingFixedHandler({ field, width }) {
+    if (this.resizeable) {
+      const index = this.tableWidthConfig.findIndex((config) => {
+        return config.field === field;
+      });
+      if (index > -1) {
+        setTimeout(() => {
+          this.tableWidthConfig[index].width = width + 'px';
+        });
+      }
     }
   }
 
-  onResizeHandler($event: { newWidth; field; isUserDefined }) {
-    const { newWidth, field, isUserDefined } = $event;
-    // if (!isUserDefined) {
-    //     if (field === 'showDetail') {
-    //         this.showDetailColumn = Object.assign({}, this.showDetailColumn, {width: newWidth});
-    //     }
-
-    //     if (field === 'checkable') {
-    //         this.checkableColumn = Object.assign({}, this.checkableColumn, {width: newWidth});
-    //     }
-    // } else {
-    // }
-    this._columns = this._columns.map(column => {
+  onResizeHandler({ width, field }) {
+    if (width < 0) {
+      return;
+    }
+    const index = this.tableWidthConfig.findIndex((config) => {
+      return config.field === field;
+    });
+    if (index > -1) {
+      this.tableWidthConfig[index].width = width + 'px';
+    }
+    const curTotal = this.tableWidthConfig.reduce((pre, cur) => {
+      const value = pre + parseInt(cur.width, 10);
+      return value;
+    }, 0);
+    let columnResizeEventArg;
+    this._columns = this._columns.map((column, colIndex) => {
       if (column.field === field) {
-        column.width = newWidth;
-        this.resize.emit(column);
-        return column;
+        column.width = parseInt(width, 10) + 'px';
+        columnResizeEventArg = { currentColumn: column, nextColumn: this._columns[colIndex + 1] };
+        this.resize.emit(columnResizeEventArg);
       }
       return column;
     });
 
-    this.changeDetectorRef.markForCheck();
+    const changeSize = curTotal - this._tableTotalWidth;
+    const lastCol = this._columns.slice(-1)[0];
+    const lastColWidth = parseInt(lastCol.width, 10);
+    if (changeSize < 0 && columnResizeEventArg.nextColumn) {
+      const newSize = parseInt(lastCol.width) - changeSize + 'px';
+      lastCol.width = newSize;
+      this.tableWidthConfig[this.tableWidthConfig.length - 1].width = newSize;
+    } else if (this._lastColSize < lastColWidth) {
+      const lastChange = (lastColWidth - this._lastColSize) > changeSize ? changeSize : (lastColWidth - this._lastColSize);
+      lastCol.width = lastColWidth - lastChange + 'px';
+      this.tableWidthConfig[this.tableWidthConfig.length - 1].width = lastColWidth - lastChange + 'px';
+    }
+  }
+
+  handleDragTable({ from, to }) {
+    this.columnDragEnd.emit({ from, to });
+    const sortArray = (array, fromE, toE) => {
+      if (fromE < toE) {
+        const fromEData = array[fromE];
+        for (let i = 0; i < array.length; i++) {
+          if (i >= fromE && i < toE) {
+            this.ngZone.run(() => {
+              array[i] = array[i + 1];
+            });
+          }
+        }
+        this.ngZone.run(() => {
+          array[toE] = fromEData;
+        });
+      }
+
+      if (fromE > toE) {
+        const fromEData = array[fromE];
+        for (let i = array.length; i > 0; i--) {
+          if (i <= fromE && i > toE) {
+            array[i] = array[i - 1];
+          }
+        }
+        array[toE] = fromEData;
+      }
+    };
+    sortArray(this._columns, from, to);
+    this._columns.forEach((item, index) => {
+      item.order = index;
+    });
   }
 
   onBodyScroll(event: Event) {
+    const target = <HTMLElement>event.target;
+
+    if (this.isCellEdit) {
+      // Y轴滚动距离超过tr高度时取消目前编辑状态
+      if (this.scrollY === 0) {
+        this.scrollY = target.scrollTop;
+      }
+      const offset = target.scrollTop - this.scrollY;
+      if (offset > 40 || offset < -40) {
+        this.cancelEditingStatus();
+        this.scrollY = 0;
+      }
+    }
+
+    const scrollLeft = target.scrollLeft;
+    if (scrollLeft === 0) {
+      if (target.clientWidth === target.scrollWidth) {
+        this.setScrollViewClass('none');
+      } else {
+        this.setScrollViewClass('left');
+      }
+    } else if (scrollLeft + target.clientWidth === target.scrollWidth) {
+      this.setScrollViewClass('right');
+    } else {
+      this.setScrollViewClass('middle');
+    }
+
     if (this.fixHeader) {
-      (<HTMLElement>this.fixHeaderRefElement.nativeElement).scrollLeft = (<
-        HTMLElement
-      >event.target).scrollLeft;
+      (<HTMLElement>this.fixHeaderContainerRefElement.nativeElement).scrollLeft = scrollLeft;
+    }
+
+    this.tableScrollEvent.emit(event);
+  }
+
+  private setScrollViewClass(position: string) {
+    const element = this.tableViewRefElement.nativeElement;
+    const className = 'devui-talbe-scorll-' + position;
+    const elClassList = element.classList;
+    if (!elClassList.contains(className)) {
+      for (let index = 0; index < elClassList.length; index++) {
+        const clName = elClassList[index];
+        if (clName.startsWith('devui-talbe-scorll-')) {
+          this.renderer.removeClass(element, clName);
+        }
+      }
+      this.renderer.addClass(element, className);
     }
   }
 
   private unSubscription() {
-    if (this.subscription) {
-      this.subscription.unsubscribe();
-      this.subscription = null;
+    if (this.headerCheckStatusSubscription) {
+      this.headerCheckStatusSubscription.unsubscribe();
+      this.headerCheckStatusSubscription = null;
     }
 
-    if (this.colSubscription) {
-      this.colSubscription.unsubscribe();
-      this.colSubscription = null;
-    }
-  }
-
-  private setupScrollEvent() {
-    if (!this.subscription) {
-      this.subscription = this.registerOnScrollStream(
-        this.scrollStream
-      ).subscribe(_ => this.onScrollChange());
+    if (this.headertoggleTableSubscription) {
+      this.headertoggleTableSubscription.unsubscribe();
+      this.headertoggleTableSubscription = null;
     }
   }
 
-  private registerOnScrollStream(scrollStream: EventEmitter<any>) {
-    return scrollStream.pipe(
-      debounceTime(300),
-      distinctUntilChanged()
-    );
-  }
-
-  onChildTableOpen(rowItem) {
-    let loadChildrenResult = Promise.resolve(true);
-    if (this.loadChildrenTable) {
-      loadChildrenResult = this.loadChildrenTable(rowItem);
-    }
-    loadChildrenResult.then(() => {
-      // 异步加载子表格是检查选中状态
-      if (rowItem.$checked && this.checkableRelation.downward) {
-        this.setChildrenCheckedStatus(rowItem.children, rowItem.$checked);
+  setRowChildToggleStatus(rowItem: any, open: boolean) {
+    if (open) {
+      let loadChildrenResult = Promise.resolve(true);
+      if (this.loadChildrenTable) {
+        loadChildrenResult = this.loadChildrenTable(rowItem);
       }
-    });
+      loadChildrenResult.then(() => {
+        // 异步加载子表格是检查选中状态
+        if (rowItem.$checked && this.checkableRelation.downward) {
+          this.setCheckedStatus(rowItem.children, rowItem.$checked, true);
+        }
+      });
+    } else {
+      this.childrenTableClose.emit(rowItem);
+    }
   }
 
-  setChildrenToogleStatus(data, open) {
+  setTableChildrenToggleStatus(open: boolean) {
+    this.onToggleAllChildrenTable(open);
+    if (this.innerHeader) {
+      this.innerHeader.setHeaderToggleStatus(open);
+    } else {
+      this.childrenTableOpen = open;
+    }
+  }
+
+  private travelChildrenToggleStatus(data, open: boolean) {
     return data.map(item => {
       if (item.children) {
         item.$isChildTableOpen = open;
-        item.children = this.setChildrenToogleStatus(item.children, open);
+        item.children = this.travelChildrenToggleStatus(item.children, open);
       }
       return item;
     });
   }
 
   // 切换表头的子表格展开收起
-  onToggleChildrenTable (open) {
+  onToggleAllChildrenTable(open: boolean) {
+    this.childrenTableOpen = open;
     if (open) {
       let loadAllChildrenResult = Promise.resolve(true);
       if (this.loadAllChildrenTable) {
@@ -707,13 +1006,68 @@ export class DataTableComponent implements OnDestroy, OnInit, AfterContentInit {
       loadAllChildrenResult.then(() => {
         this.dataSource.forEach(item => {
           if (item.$checked && item.children) {
-            this.setChildrenCheckedStatus(item.children, true);
+            this.setCheckedStatus(item.children, true, true);
           }
         });
-        this.setChildrenToogleStatus(this.dataSource, open);
+        this.travelChildrenToggleStatus(this.dataSource, open);
       });
     } else {
-      this.setChildrenToogleStatus(this.dataSource, open);
+      this.travelChildrenToggleStatus(this.dataSource, open);
+      this.allChildrenTableClose.emit();
     }
+  }
+
+  cancelEditingStatus() {
+    this.documentClickEvent.emit('cancel');
+  }
+
+  private collectCheckedRows(dist: Array<any>, source: Array<any>) {
+    source.forEach(row => {
+      if (row.$checked) {
+        dist.push(row);
+      }
+      if (row.children) {
+        this.collectCheckedRows(dist, row.children);
+      }
+    });
+  }
+
+  getCheckedRows() {
+    if (this.checkableRelation.upward) {
+      // 如果children的选中状态关联parent的选中状态,只需返回最外层的数据
+      return this.dataSource ? this.dataSource.filter(item => item.$checked || item.$halfChecked) : [];
+    } else {
+      // 如果children的选中状态不关联parent的选中状态,遍历dataSource,将所有的选中行平级返回
+      const checkedRows = [];
+      this.collectCheckedRows(checkedRows, this.dataSource);
+      return checkedRows;
+    }
+  }
+
+  setTableCheckStatus(status: TableCheckStatusArg) {
+    if (status.pageAllChecked !== undefined) { // 设置全选
+      if (this.dataSource) {
+        this._dataSource = this.setCheckedStatus(this.dataSource, status.pageAllChecked);
+      }
+      this._pageAllChecked = status.pageAllChecked;
+      if (status.pageAllChecked) { // 全选为true
+        this.halfChecked = false;
+      } else {
+        this.halfChecked = this.dataSource.some(this.hasChecked) && this.dataSource.some(this.hasUnChecked);
+      }
+    }
+
+    if (status.pageHalfChecked !== undefined) { // 设置半选
+      this.halfChecked = status.pageHalfChecked;
+    }
+
+    if (this.innerHeader) {
+      this.innerHeader.setHeaderCheckStatus({pageAllChecked: this._pageAllChecked, pageHalfChecked: this.halfChecked});
+    }
+  }
+
+  // 更新cdk虚拟滚动viewport size并重新渲染，解决父层高度变化渲染数据size没有更新问题
+  updateVirtualScrollSize() {
+    this.virtualScrollViewport.checkViewportSize();
   }
 }

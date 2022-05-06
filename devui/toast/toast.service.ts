@@ -1,47 +1,78 @@
-import { Injectable } from '@angular/core';
+import { ComponentFactoryResolver, Injectable, Injector, Type } from '@angular/core';
+import { OverlayContainerRef } from 'ng-devui/overlay-container';
+import { assign } from 'lodash-es';
+import { Message, ToastComponent } from './toast.component';
+
+export interface IToastOptions {
+  value?: Array<Message>;
+  life?: number;
+  lifeMode?: string;
+  style?: object;
+  styleClass?: string;
+  sticky?: boolean;
+  injector?: Injector;
+  component?: Type<any>;
+  componentFactoryResolver?: ComponentFactoryResolver;
+}
 
 @Injectable()
 export class ToastService {
+  constructor(private overlayContainerRef: OverlayContainerRef, private componentFactoryResolver: ComponentFactoryResolver) {}
 
-    public static zindex = 1060;
+  open({
+    value,
+    life = 5000,
+    lifeMode = 'global',
+    sticky = false,
+    style,
+    styleClass,
+    injector,
+    /**
+     * @deprecated
+     */
+    component,
+    componentFactoryResolver,
+  }: IToastOptions = {}) {
+    const finalComponentFactoryResolver = componentFactoryResolver || this.componentFactoryResolver;
+    const toastRef = this.overlayContainerRef.createComponent(
+      finalComponentFactoryResolver.resolveComponentFactory(ToastComponent),
+      injector
+    );
+    assign(toastRef.instance, {
+      lifeMode: lifeMode,
+      sticky: sticky,
+      style: style,
+      styleClass: styleClass,
+      value: value,
+      life: life,
+    });
 
-    public fadeIn(element, duration: number): void {
-        element.style.opacity = 0;
-
-        let last = +new Date();
-        let opacity = 0;
-        const tick = function () {
-            opacity = +element.style.opacity + (new Date().getTime() - last) / duration;
-            element.style.opacity = opacity;
-            last = +new Date();
-
-            if (+opacity < 1) {
-              if (window.requestAnimationFrame) {
-                requestAnimationFrame(tick);
-              } else {
-                setTimeout(tick, 16);
-              }
+    toastRef.instance.close = (index?: number | Message) => {
+      if (index !== undefined && index > -1) {
+        toastRef.instance.removeIndexThrottle(index as number);
+      } else if (index !== undefined) {
+        toastRef.instance.removeMsgThrottle(index);
+      } else {
+        setTimeout(() => {
+          toastRef.instance.removeAll();
+          setTimeout(() => {
+            if (toastRef) {
+              toastRef.destroy();
             }
-        };
+          }, 300);
+        });
+      }
+    };
 
-        tick();
-    }
+    toastRef.instance.onHidden = () => {
+      if (toastRef?.hostView) {
+        toastRef.hostView.destroy();
+      }
+    };
 
-    public fadeOut(element, ms) {
-        let opacity = 1;
-        const interval = 50;
-        const duration = ms;
-        const gap = interval / duration;
-
-        const fading = setInterval(() => {
-            opacity = opacity - gap;
-
-            if (opacity <= 0) {
-                opacity = 0;
-                clearInterval(fading);
-            }
-
-            element.style.opacity = opacity;
-        }, interval);
-    }
+    toastRef.instance.show();
+    return {
+      toastInstance: toastRef.instance,
+    };
+  }
 }

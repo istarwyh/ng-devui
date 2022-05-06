@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
+import { DrawerService, IDrawerOpenResult } from 'ng-devui/drawer';
+import { DialogService } from 'ng-devui/modal';
 import { DrawerContentComponent } from '../drawerContent/drawer-content.component';
-import { IDrawerOpenResult, DrawerService, DialogService } from 'ng-devui';
 
 @Component({
   selector: 'd-basic',
@@ -15,12 +16,14 @@ export class BasicComponent {
   openDrawer() {
     this.results = this.drawerService.open({
       drawerContentComponent: DrawerContentComponent,
-      width: '50%',
+      width: '300px',
+      zIndex: 1000,
       isCover: true,
       fullScreen: true,
       backdropCloseable: true,
       escKeyCloseable: true,
-      beforeHidden: () => this.beforeHidden(),
+      position: 'left',
+      // beforeHidden: () => this.beforeHidden(),
       onClose: () => {
         console.log('on drawer closed');
       },
@@ -34,12 +37,14 @@ export class BasicComponent {
           'This is item 4',
           'This is item 5',
         ],
-        onBtnClick: (event) => {
-          console.log(event);
+        close: (event) => {
           this.results.drawerInstance.hide();
         },
         fullScreen: (event) => {
           this.results.drawerInstance.toggleFullScreen();
+        },
+        changeWidth: (event) => {
+          this.results.drawerInstance.setWidth(event + 'px');
         }
       }
     });
@@ -51,8 +56,8 @@ export class BasicComponent {
       const results = this.dialogService.open({
         id: 'dialog-service',
         width: '300px',
+        zIndex: 1050,
         maxHeight: '600px',
-        showAnimate: false,
         title: 'Close?',
         content: 'Are you sure to Close?',
         backdropCloseable: false,
@@ -60,7 +65,7 @@ export class BasicComponent {
         buttons: [
           {
             cssClass: 'stress',
-            text: '确定',
+            text: 'Ok',
             handler: ($event: Event) => {
               results.modalInstance.hide();
               resolve(true);
@@ -69,7 +74,7 @@ export class BasicComponent {
           {
             id: 'btn-cancel',
             cssClass: 'common',
-            text: '取消',
+            text: 'Cancel',
             handler: ($event: Event) => {
               results.modalInstance.hide();
               resolve(false);

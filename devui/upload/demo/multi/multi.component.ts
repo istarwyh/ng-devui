@@ -1,9 +1,10 @@
 import { Component } from '@angular/core';
-import { IUploadOptions, IFileOptions } from 'ng-devui';
+import { IFileOptions, IUploadOptions } from 'ng-devui/upload';
 
 @Component({
-  selector: 'd-demo-upload-multi',
-  templateUrl: './multi.component.html'
+  selector: 'd-multi',
+  templateUrl: './multi.component.html',
+  styleUrls: ['./multi.component.scss']
 })
 export class MultiComponent {
 
@@ -12,17 +13,51 @@ export class MultiComponent {
     age: 11
   };
   uploadOptions2: IUploadOptions = {
-    uri: 'http://localhost:3000/upload',
+    uri: '/upload',
     method: 'post',
     additionalParameter: this.additionalParameter2,
     maximumSize: 20,
     checkSameName: true
   };
+  uploadOptions: IUploadOptions = {
+    uri: '/upload',
+    method: 'post',
+    additionalParameter: this.additionalParameter2,
+    maximumSize: 0.5,
+    checkSameName: true
+  };
   fileOptions2: IFileOptions = {
     multiple: true,
     accept: '.xls,.xlsx,.pages,.mp3,.png',
+    webkitdirectory: true
+  };
+  fileOptions3: IFileOptions = {
+    multiple: true,
+    webkitdirectory: true
+  };
+  uploadOptions3: IUploadOptions = {
+    uri: '/upload',
+    method: 'post',
+    maximumSize: 20,
+    checkSameName: true
   };
   uploadedFiles2: Array<Object> = [];
+  uploadedFiles3: Array<Object> = [];
+  UPLOADED: string;
+  FAILED: string;
+  DELETE: string;
+  PRELOAD: string;
+  UPLOADING: string;
+  UPLOAD: string;
+
+  constructor() {
+    this.UPLOAD = '上传';
+    this.PRELOAD = '预加载';
+    this.UPLOADING = '上传中...';
+    this.UPLOADED = '已上传';
+    this.FAILED = '上传失败';
+    this.DELETE = '删除';
+  }
 
   onSuccess2(result) {
     console.log(result);
@@ -41,5 +76,8 @@ export class MultiComponent {
   }
   fileOver(event) {
     console.log(event);
+  }
+  fileSelect(files) {
+    console.log(files);
   }
 }

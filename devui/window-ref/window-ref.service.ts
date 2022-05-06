@@ -1,34 +1,38 @@
-import { Injectable, ElementRef } from '@angular/core';
+import { ElementRef, Injectable } from '@angular/core';
 import { DocumentRef } from './document-ref.service';
 
 @Injectable()
 export class WindowRef {
 
-  constructor(private  documentRef: DocumentRef) {
+  constructor(private documentRef: DocumentRef) {
+  }
+
+  get window(): Window | null {
+    return this.document.defaultView;
   }
 
   get document(): any {
-    return this.documentRef;
+    return this.documentRef.document;
   }
 
   get pageXOffset() {
-    return window.pageXOffset;
+    return this.window.pageXOffset;
   }
 
   get pageYOffset() {
-    return window.pageYOffset;
+    return this.window.pageYOffset;
   }
 
   get innerHeight() {
-    return window.innerHeight;
+    return this.window.innerHeight;
   }
 
   get innerWidth() {
-    return window.innerWidth;
+    return this.window.innerWidth;
   }
 
   getComputedStyle(element) {
-    return window.getComputedStyle(element);
+    return this.window.getComputedStyle(element);
   }
 
   getBoundingClientRect(elementRef: ElementRef) {

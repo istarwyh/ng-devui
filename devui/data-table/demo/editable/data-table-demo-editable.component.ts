@@ -1,20 +1,36 @@
-import { Component, HostBinding, OnInit } from '@angular/core';
-import {editableOriginSource, SourceType, genderSource, hobbySource, DutySource} from '../mock-data';
+import { Component, OnInit } from '@angular/core';
+import { EditableTip } from 'ng-devui/data-table';
+import { cloneDeep } from 'lodash-es';
+import { editableOriginSource, genderSource } from '../mock-data';
 
 @Component({
-    selector: 'd-datatable-demo-editable',
-    templateUrl: './data-table-demo-editable.component.html'
+  selector: 'd-editable',
+  templateUrl: './data-table-demo-editable.component.html'
 })
 export class DatatableDemoEditableComponent implements OnInit {
   genderSource = genderSource;
-  hobbySource = hobbySource;
-  DutySource = DutySource;
-  basicDataSource: Array<SourceType> = JSON.parse(JSON.stringify(editableOriginSource.slice(0, 6)));
-  thisCellEditEnd(event) {
-    console.log('cellEditEnd');
-    console.log(event.rowItem);
-  }
+  basicDataSource = cloneDeep(editableOriginSource.slice(0, 6));
+
+  editableTip = EditableTip.btn;
+  nameEditing: boolean;
 
   ngOnInit() {
   }
+
+  onEditEnd(rowItem, field) {
+    rowItem[field] = false;
+  }
+
+  beforeEditStart = (rowItem, field) => {
+    return true;
+  };
+
+  beforeEditEnd = (rowItem, field) => {
+    console.log('beforeEditEnd');
+    if (rowItem && rowItem[field].length < 3) {
+      return false;
+    } else {
+      return true;
+    }
+  };
 }

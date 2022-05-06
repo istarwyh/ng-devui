@@ -5,10 +5,12 @@ import { Component, OnInit } from '@angular/core';
   templateUrl: './without-content.component.html'
 })
 export class WithoutContentComponent implements OnInit {
-  tab22acticeID = 'tab1';
+  acticeTabId: string | number = 'tab2';
   constructor() { }
 
   ngOnInit() {
   }
-
+  activeTabChange(event) {
+    console.log('switch to', event);
+  }
 }

@@ -1,50 +1,75 @@
-@import "../../devui/style/theme/color";
+@import '~ng-devui/styles-var/devui-var.scss';
+
 body {
-  background: $white;
+  background: $devui-base-bg;
 }
 
-@mixin menu(){
+@mixin font-content() {
+  font-size: $devui-font-size;
+  font-weight: $devui-font-content-weight;
+  line-height: $devui-line-height-base;
+}
+
+@mixin font-title($font-size: $devui-font-size-page-title) {
+  font-size: $font-size;
+  font-weight: $devui-font-title-weight;
+  line-height: $devui-line-height-base;
+}
+
+@mixin menu() {
   position: fixed;
   display: block;
-  font-size: 12px;
+  font-size: $devui-font-size;
   z-index: 5;
   width: 4em;
   height: 4em;
   padding: 1em;
   transition: all 0.2s ease-out;
+
   span {
     position: relative;
     display: block;
     margin-top: 0.9em;
-    &:before, &:after{
+
+    &::before,
+    &::after {
       position: absolute;
-      top: -.55em;
-      content: " ";
+      top: -0.55em;
+      content: ' ';
     }
-    &:after{
-      top: .55em;
+
+    &::after {
+      top: 0.55em;
     }
-    &, &:before, &:after{
-      background-color: $white;
+
+    &,
+    &::before,
+    &::after {
+      background-color: $devui-text;
       width: 100%;
-      height: .2em;
-      transition: all .4s;
+      height: 0.2em;
+      transition: all 0.4s;
     }
   }
-  &.active span{
+
+  &.active span {
     background: transparent;
-    &:before{
-      transform: rotate(45deg) translate(.5em, .4em);
+
+    &::before {
+      transform: rotate(45deg) translate(0.5em, 0.4em);
     }
-    &:after{
-      transform: rotate(-45deg) translate(.4em, -.3em);
+
+    &::after {
+      transform: rotate(-45deg) translate(0.4em, -0.3em);
     }
   }
 }
+
 .app-container {
   display: flex;
   flex-direction: column;
   transform: none;
+
   .app-bar {
     position: fixed;
     top: 0;
@@ -63,40 +88,46 @@ body {
     justify-content: space-between;
     width: 100%;
     height: 50px;
-    background: $white;
-    box-shadow: 0 2px 4px 0 rgba(41,48,64,0.20);
+    background: $devui-base-bg;
+    box-shadow: $devui-shadow-length-base $devui-shadow;
+
     a {
-      line-height: 26px;
-      color: $dark1;
+      line-height: $devui-line-height-base;
+      color: $devui-text;
       text-decoration: none;
     }
 
-    a:hover, a:focus {
-      color: $dark1;
+    a:hover,
+    a:focus {
+      color: $devui-text;
       text-decoration: none;
     }
   }
 
   h1.title {
-    font-size: 20px;
+    font-size: $devui-font-size-page-title;
     margin: 0;
-    font-weight: bold;
+    font-weight: $devui-font-title-weight;
     padding: 9px 20px;
     box-sizing: border-box;
-    .logo, .text {
+
+    .logo,
+    .text {
       display: inline-block;
       vertical-align: top;
     }
+
     .ui {
       font-weight: normal;
     }
+
     a:hover {
       text-decoration: none;
     }
 
     .internal {
       font-size: small;
-      background-color: #5E7CE0;
+      background-color: #5e7ce0;
       color: white;
       margin-left: 5px;
       font-weight: normal;
@@ -112,99 +143,49 @@ body {
     margin-right: 20px;
   }
 
-  .header-menu{
-    right: 5px;
-    @include menu();
-    display: none;
-    span {
-      &, &:before, &:after{
-        background: $dark;
-      }
-
-    }
-  }
-
   .main-nav-item {
-    font-size: 15px;
-    display: block;
+    display: flex;
+    align-items: center;
     padding: 5px 0;
     margin: 0 12px;
-    color:$dark1;
+    color: $devui-text;
+    cursor: pointer;
 
-    &:hover {
-      text-decoration: none;
-      color:$hover-control;
-    }
-    &:active, &:focus {
-      color: $focus1;
+    & > span {
+      font-size: $devui-font-size-page-title;
+      line-height: $devui-line-height-base;
     }
 
-    &.active {
-      color: $focus1;
-    }
-    &.version-label{
+    &.version-label {
       cursor: default;
-      &:hover, &:focus{
+
+      &:hover,
+      &:focus {
         color: inherit;
       }
     }
+
+    &.language {
+      cursor: pointer;
+      min-width: 50px;
+      text-align: center;
+
+      &:hover {
+        color: inherit;
+        background: $devui-list-item-hover-bg;
+      }
+    }
   }
 
-  .wrapper {
-    display: flex;
-    flex: 1;
-    flex-direction: row;
-    position: absolute;
-    top: 50px;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    .sidebar {
-      box-sizing: border-box;
-      position: fixed;
-      top: 50px;
-      bottom: 0;
-      left: 0;
-      width: 240px;
-      margin-left: -240px;
-      border-right: 1px solid $gray2;
-      height: 100%;
-      overflow-y: hidden;
-      z-index: 2;
-      background: $white;
-      transition: all .2s ease-out;
-      &:hover{
-        overflow-y: auto;
-      }
+  a.main-nav-item {
+    &:hover {
+      text-decoration: none;
+      color: $devui-list-item-hover-text;
     }
 
-    .menu-link {
-      left: 0;
-      background: rgba($dark, 0.7);
-      @include menu();
-    }
-
-    .doc-viewer-container {
-      width: 100%;
-      margin-left:0;
-      // overflow-y: auto;
-      .main{
-        width: 100%;
-        padding: 0 20px;
-      }
-    }
-    &.active {
-      .sidebar{
-        overflow-y: auto;
-        left: 240px;
-      }
-      .doc-viewer-container {
-        width: calc(100% - 240px);
-        margin-left: 240px;
-      }
-      .menu-link{
-        left: 240px;
-      }
+    &:active,
+    &:focus {
+      color: $devui-brand;
     }
   }
 
@@ -216,26 +197,8 @@ body {
   }
 
   .side-nav {
-    background: $white;
-    padding-bottom: 72px;
-
-    .list-group {
-      margin-bottom: 0;
-      .list-group-item {
-        &:hover{
-          background-color: $hover-content;
-        }
-        &:focus{
-          background-color: $focus3;
-        }
-      }
-      .text-overflow-ellipsis{
-        overflow: hidden;
-        text-overflow: ellipsis;
-        word-break: break-all;
-        white-space:nowrap;
-      }
-    }
+    background: $devui-base-bg;
+    padding-bottom: 144px;
 
     ul {
       margin: 0;
@@ -243,20 +206,27 @@ body {
 
     .panel-body {
       padding: 0;
-      background-color: $white;
+      background-color: $devui-base-bg;
     }
 
     .panel-title {
-      font-size: 12px;
+      font-size: $devui-font-size;
       font-weight: normal;
-      color: $dark3;
+      color: $devui-placeholder;
       margin: 0;
       position: relative;
-      line-height: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+
+      span {
+        @include font-content();
+      }
     }
 
-    .panel > .panel-heading, .panel.panel-default > .panel-heading {
-      background: $white;
+    .panel > .panel-heading,
+    .panel.panel-default > .panel-heading {
+      background: $devui-base-bg;
       padding-left: 20px;
     }
 
@@ -264,10 +234,11 @@ body {
       box-shadow: none;
     }
 
-    [class*="panel-"] > .panel-heading {
+    [class*='panel-'] > .panel-heading {
       cursor: pointer;
+
       &:hover {
-        color: $hover-control;
+        color: $devui-list-item-hover-text;
       }
     }
 
@@ -275,78 +246,64 @@ body {
       border: none;
     }
   }
-
-  .side-nav .list-group li > a {
-    box-sizing: border-box;
-    display: block;
-    font-size: 14px;
-    font-weight: 400;
-    line-height: 40px;
-    text-decoration: none;
-    -webkit-transition: all .2s;
-    transition: all .2s;
-    padding-left: 40px;
-    position: relative;
-    outline: none;
-    color: $dark1;
-  }
-
-  .side-nav li {
-    a:hover{
-      background: $hover-content;
-    }
-    a:focus{
-      background: $focus3;
-    }
-  }
-
-  .side-nav .list-group-item.active {
-    outline: none;
-    color: $focus1;
-    border-right: 2px solid $focus1;
-    background-color: $focus3;
-    &:hover,&:focus{
-      outline: none;
-    }
-  }
 }
 
 .devui-menu {
   outline: none;
-  margin-top: 20px;
   margin-bottom: 0;
   padding-left: 0;
   list-style: none;
   z-index: 1050;
-  background: $white;
+  background: $devui-base-bg;
 }
+
 .devui-menu-item {
-  font-size: 14px;
   text-overflow: ellipsis;
   overflow: hidden;
-  font-size: 14px;
-  line-height: 40px;
   padding-left: 20px;
-  &:hover{
-    background-color: $hover-content;
+  height: 40px;
+  display: flex;
+  align-items: center;
+
+  &:not(.devui-menu-item-selected):hover {
+    background-color: $devui-list-item-hover-bg;
+
+    a {
+      color: $devui-list-item-hover-text;
+    }
   }
 }
-.devui-menu-item>a {
+
+.devui-menu-item > a {
+  @include font-content();
+
   display: block;
-  color: $dark1;
+  color: $devui-text;
   text-decoration: none;
 }
 
 .devui-menu-item-selected {
-  color: $focus1;
-  background-color: $focus3;
-  border-right: 2px solid $focus1;
-  a{
-    color: inherit;
+  a {
+    color: $devui-brand-active;
+    font-weight: bold;
   }
 }
 
-.demo-container{
+.main {
+  .docs-header {
+    & > h1 {
+      @include font-title();
+
+      margin: 1em 0;
+    }
+
+    h3 {
+      @include font-title($devui-font-size-card-title);
+    }
+  }
+}
+
+.demo-container {
   position: relative;
   padding-bottom: 30px;
   margin-top: 20px;
@@ -359,10 +316,11 @@ body {
 .demo-example {
   margin-bottom: 20px;
 }
+
 .demo-nav {
   position: absolute;
   height: 100%;
-  top:0;
+  top: 0;
   right: 0;
   width: 150px;
   line-height: 24px;
@@ -373,58 +331,48 @@ body {
   cursor: pointer;
 }
 
-.demo-nav .items>li:hover {
-  color: $focus1;
+.demo-nav .items > li:hover {
+  color: $devui-brand;
 }
 
 .demo-nav-active {
-  color: $focus1;
+  color: $devui-brand;
 }
 
 .demo-title {
-  font-size: 14px;
-  color: $dark1;
-  line-height: 24px;
-  font-weight: bold;
+  @include font-title($devui-font-size-card-title);
+
+  color: $devui-text;
   margin-bottom: 10px;
+  height: 24px;
+  display: flex;
+  align-items: center;
 }
 
 .demo-text {
-  font-size: 14px;
-  color: $dark1;
-  line-height: 24px;
-}
-.readme {
-  .hljs{
-    background: transparent;
-  }
-  pre {
-    background-color: $white;
-    border: none;
-    code {
-      border: 1px solid #e9e9e9;
-      overflow-x: auto;
-    }
-  }
-  p {
-    margin: 1em 0;
-  }
+  @include font-content();
+
+  color: $devui-text;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .app-container {
-    .header-menu{
+    .header-menu {
       display: block;
     }
+
     header {
       flex-direction: column;
       justify-items: center;
-      .main-nav{
+
+      .main-nav {
         display: none;
       }
-      &.active{
-        height: 205px;
-        .main-nav{
+
+      &.active {
+        height: 100%;
+
+        .main-nav {
           display: flex;
           flex-direction: column;
           width: 100%;
@@ -440,13 +388,20 @@ body {
     .sidebar {
       left: 240px;
     }
-    .doc-viewer-container{
+
+    .devui-components-search {
+      margin-left: 0;
+    }
+
+    .doc-viewer-container {
       margin-left: 240px;
       width: calc(100% - 240px);
-      .main{
+
+      .main {
         padding: 0 60px;
       }
     }
+
     .menu-link {
       display: none;
     }
@@ -455,10 +410,76 @@ body {
 
 @media (min-width: 1280px) {
   .app-container .wrapper {
-    .doc-viewer-container{
-      .main{
+    .doc-viewer-container {
+      .main {
         padding: 0 20%;
       }
     }
+  }
+}
+
+.main-nav-item .show-themable {
+  display: none;
+  display: var(--iehack, flex);
+  align-items: center;
+
+  d-select,
+  d-toggle {
+    margin-right: 5px;
+  }
+}
+
+.devui-demo-example.active.anchor-active-by-anchor-link,
+.devui-demo-example.active.anchor-active-by-fragment {
+  animation: hightlight-and-disapear 1 3s linear;
+  outline-offset: 8px;
+}
+
+@keyframes hightlight-and-disapear {
+  0% {
+    outline: invert none medium;
+  }
+
+  2% {
+    outline: 0 none rgba(255, 255, 255, 0);
+  }
+
+  10% {
+    outline: 1px dashed $devui-brand;
+  }
+
+  50% {
+    outline: 1px dashed $devui-brand;
+  }
+
+  90% {
+    outline: 1px dashed rgba(255, 255, 255, 0);
+  }
+
+  99% {
+    outline: 0 none rgba(255, 255, 255, 0);
+  }
+
+  100% {
+    outline: invert none medium;
+  }
+}
+
+.side-nav d-accordion d-accordion-list d-accordion-menu .devui-accordion-open-icon {
+  display: none !important;
+}
+
+.side-nav d-accordion d-accordion-list {
+  box-shadow: none !important;
+}
+
+.devui-components-search {
+  padding: 24px 0 24px 16px;
+  position: fixed;
+  margin-left: -240px;
+  transition: margin-left 0.2s;
+
+  d-search {
+    width: 215px;
   }
 }

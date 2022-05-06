@@ -1,8 +1,9 @@
 import {
   Component,
-  Input,
-  Output,
+
   EventEmitter,
+  Input,
+  Output
 } from '@angular/core';
 import { AlertType } from './alert.types';
 
@@ -10,14 +11,18 @@ import { AlertType } from './alert.types';
   selector: 'd-alert',
   templateUrl: './alert.component.html',
   styleUrls: ['./alert.component.scss'],
+  preserveWhitespaces: false,
 })
 export class AlertComponent {
   @Input() type: AlertType = 'info';
   @Input() cssClass: string;
   @Input() closeable = true;
+  /**
+   * @deprecated
+   */
   @Input() content: HTMLElement | string;
-  @Output() closeEvent: EventEmitter<any> = new EventEmitter;
-
+  @Input() showIcon = true;
+  @Output() closeEvent = new EventEmitter<AlertComponent>();
   @Input() set dismissTime(time) {
     setTimeout(() => {
       this.close();
@@ -25,9 +30,6 @@ export class AlertComponent {
   }
 
   hide = false;
-
-  constructor() {
-  }
 
   close() {
     this.closeEvent.emit(this);

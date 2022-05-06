@@ -1,12 +1,21 @@
-import { BrowserModule } from '@angular/platform-browser';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { NgModule } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-
+import { RouterModule } from '@angular/router';
+import { DevUIModule } from 'ng-devui';
+import { DEVUI_LANG, ZH_CN } from 'ng-devui/i18n';
+import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+import { environment } from 'src/environments/environment';
+import { DevuiCommonsModule } from '../../devui-commons/src/public-api';
 import { AppComponent } from './app.component';
+import { ThemePickerModule } from './theme-picker/theme-picker.module';
 
-import { DevUIModule } from 'ng-devui/devui.module';
-
+export function HttpLoaderFactory(http: HttpClient) {
+  return new TranslateHttpLoader(http, `${environment.deployPrefix}assets/i18n/`, '.json');
+}
 @NgModule({
   declarations: [
     AppComponent
@@ -14,26 +23,41 @@ import { DevUIModule } from 'ng-devui/devui.module';
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
+    HttpClientModule,
     DevUIModule.forRoot(),
-    RouterModule.forRoot(
-      [
-        {
-          path: '',
-          redirectTo: 'components',
-          pathMatch: 'full'
-        },
-        {
-          path: 'components',
-          loadChildren: './component/app-content.module#AppContentModule'
-        },
-        {
-          path: '**',
-          redirectTo: 'components'
-        }
-      ]
-    )
+    FormsModule,
+    ThemePickerModule,
+    HttpClientModule,
+    DevuiCommonsModule,
+    RouterModule.forRoot([
+      {
+        path: '',
+        redirectTo: 'components/zh-cn',
+        pathMatch: 'full'
+      },
+      {
+        path: 'components/:lang',
+        loadChildren: () => import('./component/app-content.module').then(m => m.AppContentModule)
+      },
+      {
+        path: '**',
+        redirectTo: 'components/zh-cn'
+      }
+    ], { relativeLinkResolution: 'legacy' }),
+    TranslateModule.forRoot({
+      loader: {
+        provide: TranslateLoader,
+        useFactory: HttpLoaderFactory,
+        deps: [HttpClient]
+      }
+    })
   ],
-  providers: [],
+  providers: [
+    {
+      provide: DEVUI_LANG,
+      useValue: ZH_CN
+    }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

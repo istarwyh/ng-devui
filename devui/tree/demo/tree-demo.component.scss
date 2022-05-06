@@ -1,8 +1,11 @@
+@import '~ng-devui/styles-var/devui-var.scss';
+
 .tree-node.customized-tree-node {
   border: none;
+
   .tree-node__content {
-    padding: .3em;
-    font-size: 12px;
+    padding: 0.3em;
+    font-size: $devui-font-size;
     cursor: pointer;
     user-select: none;
   }
@@ -16,12 +19,9 @@
     padding-left: 1em;
   }
 
-  .tree-node--parent {
-  }
-
   .tree-node__title {
-    padding-left: .4em;
-    margin-top: .4em;
+    padding-left: 0.4em;
+    margin-top: 0.4em;
     display: inline-block;
 
     &:hover {
@@ -31,7 +31,7 @@
 
   .tree-node__leaf {
     &.glyphicon {
-      color: #56C3F6;
+      color: #56c3f6;
     }
   }
 
@@ -39,6 +39,7 @@
     display: inline-block;
     vertical-align: middle;
     color: rgba(86, 195, 246, 0.6);
+
     &:hover {
       + .tree-node__title {
         text-decoration: underline;
@@ -47,11 +48,12 @@
   }
 
   .glyphicon-remove {
-    margin-top: .25em;
-    margin-left: .5em;
+    margin-top: 0.25em;
+    margin-left: 0.5em;
     color: #f83848;
+
     &:hover {
-      color: #F85F5B;
+      color: #f85f5b;
     }
   }
 }
